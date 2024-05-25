@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 
 @RequiredArgsConstructor
@@ -13,16 +15,7 @@ public class LatxLnY {
 
     private final ApiExplorer apiExplorer;
     public static int TO_GRID = 0;
-    @GetMapping("/weatherData")
-    public void tset(@RequestParam("nx") double nx, @RequestParam("ny") double ny){
-        LatXLngY info = convertGRID_GPS(0,nx,ny);
-        try {
-            apiExplorer.getWeatherInfo(info.x,info.y);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    private LatXLngY convertGRID_GPS(int mode, double lat_X, double lng_Y )
+    public LatXLngY convertGRID_GPS(int mode, double lat_X, double lng_Y )
     {
         double RE = 6371.00877; // 지구 반경(km)
         double GRID = 5.0; // 격자 간격(km)

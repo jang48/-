@@ -12,12 +12,23 @@
 </head>
 <body>
 <div>
-    <div>
-        <input type="text" id="address" placeholder="주소">
-        <input type="button" onclick="ExecDaumPostcode()" value="주소 검색"><br>
-        <input type="text" id="latitude" name="latitude">
-        <input type="text" id="longitude" name="longitude">
-        <div id="map" style="width:300px;height:300px;margin-top:10px;display:none"></div>
+    <div style="width : 100%; height : 100%; display: flex; justify-content: center;">
+        <div style="margin-top : 10%; display: flex; flex-direction: column;">
+            <div style="display : flex; flex-direction : column;">
+                <span id="time"></span>
+                <div>
+                    <span>현재 기온은</span>
+                    <span id="temper" style="font-size : xxx-large;"></span>°C
+                </div>
+                <span id="sky" style="display: flex; justify-content: center;"></span>
+                <span id="pty" style="font-size : xxx-large;"></span>
+            </div>
+            <input type="text" id="address" placeholder="주소">
+            <input type="button" onclick="ExecDaumPostcode()" value="주소 검색"><br>
+            <input type="text" hidden="hidden" id="latitude" name="latitude">
+            <input type="text" hidden="hidden" id="longitude" name="longitude">
+            <div id="map" style="width:200px; height:200px; border-radius : 50%; margin-top:10px;display:none"></div>
+        </div>
     </div>
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=5bd204a017173d719eef05bd1456fcbf&libraries=services"></script>
@@ -78,10 +89,58 @@
             xhr.open("GET", `/weatherData?nx=${latitude}&ny=${longitude}`, true);
             xhr.onreadystatechange = function () {
                 if (xhr.readyState == 4 && xhr.status == 200) {
-                    alert("날씨 정보 조회 성공!");
+                    var weatherDTO = JSON.parse(xhr.responseText);
+                    console.log(weatherDTO);
+                    displayWeatherInfo(weatherDTO);
                 }
             };
             xhr.send();
+        }
+
+        function displayWeatherInfo(weatherDTO){
+            var timeSpan = document.getElementById("time");
+            var temperSpan = document.getElementById("temper");
+            var skySpan = document.getElementById("sky");
+            var ptySpan = document.getElementById("pty");
+
+            if(weatherDTO.hasOwnProperty("fcstTime")){
+                var Time = convertToKoreanTime(weatherDTO.fcstTime);
+                timeSpan.textContent = Time;
+            }
+
+            if (weatherDTO.hasOwnProperty("tmp")) {
+                temperSpan.textContent = weatherDTO.tmp;
+            }
+
+            if (weatherDTO.hasOwnProperty("sky")) {
+                if(weatherDTO.sky === 1) {
+                    skySpan.innerHTML = '<img src="img/clear-day.svg" style = "width: 100px; height: 100px;">';
+                } else if(weatherDTO.sky === 3) {
+                    skySpan.innerHTML = '<img src="img/partly-cloudy-day.svg" style = "width: 100px; height: 100px;">';
+                } else {
+                    skySpan.innerHTML = '<img src="img/cloudy.svg" style = "width: 100px; height: 100px;">';
+                }
+            }
+
+            if (weatherDTO.hasOwnProperty("pty")) {
+                if(weatherDTO.pty === 1){
+                    ptySpan.textContent = "비";
+                } else if(weatherDTO.pty === 2){
+                    ptySpan.textContent = "비/눈";
+                } else if(weatherDTO.pty === 3){
+                    ptySpan.textContent = "눈";
+                } else if(weatherDTO.pty === 4){
+                    ptySpan.textContent = "소나기";
+                }
+            }
+        }
+
+        function convertToKoreanTime(time) {
+            if (time >= 1200) {
+                return "오후 " + (time - 1200) / 100 + "시";
+            } else {
+                return "오전 " + time / 100 + "시";
+            }
         }
     </script>
 </div>
