@@ -1,0 +1,70 @@
+
+.clock {
+    width: 200px;
+    height: 200px;
+    border: 3px solid #000;
+    border-radius: 50%;
+    position: relative;
+}
+.hour-mark {
+    position: absolute;
+    width: 2px; /* 선의 두께 조정 */
+    height: 100px; /* 선의 길이 조정 */
+    background: #000;
+    left: 50%;
+    transform-origin: bottom center;
+}
+.hour-mark:nth-child(3n+1),
+.hour-mark:nth-child(6n+1),
+.hour-mark:nth-child(9n+1),
+.hour-mark:nth-child(12n+1) {
+}
+.hour-mark:nth-child(1) {
+    transform: rotate(30deg);
+}
+.hour-mark:nth-child(2) {
+    transform: rotate(60deg);
+}
+.hour-mark:nth-child(3) {
+    transform: rotate(90deg);
+}
+.hour-mark:nth-child(4) {
+    transform: rotate(120deg);
+}
+.hour-mark:nth-child(5) {
+    transform: rotate(150deg);
+}
+.hour-mark:nth-child(6) {
+    transform: rotate(180deg);
+}
+.hour-mark:nth-child(7) {
+    transform: rotate(210deg);
+}
+.hour-mark:nth-child(8) {
+    transform: rotate(240deg);
+}
+.hour-mark:nth-child(9) {
+    transform: rotate(270deg);
+}
+.hour-mark:nth-child(10) {
+    transform: rotate(300deg);
+}
+.hour-mark:nth-child(11) {
+    transform: rotate(330deg);
+}
+.hour-mark:nth-child(12) {
+    transform: rotate(360deg);
+}
+
+.hour-num {
+    position: absolute;
+    font-size: 14px;
+    top: 50%;
+    left: 50%;
+    transform-origin: bottom center;
+    transform: translate(-50%, -100%); /* 텍스트 위치 조정 */
+}
+
+.hour-num:nth-child(3n+1) {
+    transform: translate(-27%, -419%) rotate(4deg);
+}

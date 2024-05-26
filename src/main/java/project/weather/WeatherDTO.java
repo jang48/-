@@ -17,5 +17,8 @@ public class WeatherDTO {
     private String POP;   // 강수확률(%)
     private String SKY;   // 하늘상태
     private String SNO;   // 적설량(cm)
+    private String TMN;   // 일 최저기온(℃)
+    private String TMX;   // 일 최고기온(℃)
+
 
 }

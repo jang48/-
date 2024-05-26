@@ -3,33 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" th:href="@{/main.css}">
-    <style>
-        button {
-            border: none;
-            outline: none;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/clock.css}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 </head>
 <body>
 <div>
+    <div style="display: flex; flex-direction: column; align-items: center; margin-top : 50px;">
+        <div style="display : flex; align-items: center;">
+            <span th:if="${nowWeather.SKY} == 1">
+                <img src="/img/clear-day.svg" style="width: 100px;">
+            </span>
+            <span th:if="${nowWeather.SKY} == 3">
+                <img src="/img/partly-cloudy-day.svg" style="width: 100px;">
+            </span>
+            <span th:if="${nowWeather.SKY} == 4">
+                <img src="/img/partly-cloudy-day.svg" style="width: 100px;">
+            </span>
+            <span th:text="${nowWeather.TMP} +'°'" style="font-size : xxx-large; margin-left: -38px;"></span>
+        </div>
+        <div>
+            <span th:text="'습도 ' + ${nowWeather.REH} + '%'"></span>
+        </div>
+    </div>
     <div class="swiper-container">
-        <div class="swiper mySwiper">
+        <div class="swiper mySwiper" style="height : 210px;">
             <div class="swiper-wrapper">
                 <div class="swiper-slide" style="display : flex;" th:each="dto : ${dtoList}">
                     <div style="display : flex; justify-content: center;">
                         <div th:each="dtoItem : ${dto}">
                             <span th:text="${dtoItem.TMP}"></span>°
                             <span th:if="${dtoItem.SKY} == 1">
-                            <img src="/img/clear-day.svg" style="width: 100px; height: 100px;">
+                            <img src="/img/clear-day.svg">
                             </span>
-                                <span th:if="${dtoItem.SKY} == 3">
-                                <img src="/img/partly-cloudy-day.svg" style="width: 100px; height: 100px;">
+                            <span th:if="${dtoItem.SKY} == 3">
+                                <img src="/img/partly-cloudy-day.svg">
                             </span>
-                                <span th:if="${dtoItem.SKY} == 4">
-                                <img src="/img/partly-cloudy-day.svg" style="width: 100px; height: 100px;">
+                            <span th:if="${dtoItem.SKY} == 4">
+                                <img src="/img/partly-cloudy-day.svg">
                             </span>
-                            <span th:text="${#strings.substring(dtoItem.fcstTime, 0, 2)}"></span>시
+                            <span th:text="${#strings.substring(dtoItem.fcstTime, 0, 2)}+시"
+                                  style="font-size : small;"></span>
                         </div>
                     </div>
                 </div>
@@ -37,12 +50,16 @@
             <div class="swiper-button-next"></div>
             <div class="swiper-button-prev"></div>
         </div>
+        <canvas id="myChart" style="width : 100px; height : 150px;"></canvas>
     </div>
 
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=5bd204a017173d719eef05bd1456fcbf&libraries=services"></script>
     <!-- Swiper JS -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <!-- Chart JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
     <!-- Initialize Swiper -->
     <script>
         var swiper = new Swiper(".mySwiper", {
@@ -50,6 +67,70 @@
             nextEl: ".swiper-button-next",
             prevEl: ".swiper-button-prev",
           },
+        });
+
+        // 차트 만들기
+        let myCt = document.getElementById('myChart');
+
+        // 차트에 들어갈 데이터 가져오기
+        var todayData =  [[${today}]];
+        var todayData2 =  [[${today2}]];
+        var todayData3 =  [[${today3}]];
+
+        var tomorrow =  [[${tomorrow}]];
+        var tomorrow2 =  [[${tomorrow2}]];
+        var tomorrow3 =  [[${tomorrow3}]];
+
+        var dayAfterTomorrow =  [[${dayAfterTomorrow}]];
+        var dayAfterTomorrow2 =  [[${dayAfterTomorrow2}]];
+        var dayAfterTomorrow3 =  [[${dayAfterTomorrow3}]];
+
+        let myChart = new Chart(myCt, {
+          type: 'line',
+          data: {
+            labels: [
+                String(todayData).substring(4,6)+'.'+String(todayData).substring(6,8),  // 가져온데이터를 String값으로 변경 후 substring 함수 적용
+                String(tomorrow).substring(4,6)+'.'+String(tomorrow).substring(6,8),
+                String(dayAfterTomorrow).substring(4,6)+'.'+String(dayAfterTomorrow).substring(6,8)
+            ],
+            datasets: [
+              {
+                label: '일 최저기온(℃)',
+                data: [todayData2,tomorrow2,dayAfterTomorrow2],
+                backgroundColor: '#00C7E2',
+                maxBarThickness: 30
+              },
+              {
+                label: '일 최고기온(℃)',
+                data: [todayData3,tomorrow3,dayAfterTomorrow3],
+                backgroundColor: '#FF7DA8',
+                maxBarThickness: 30
+              }
+            ]
+          },
+            options: {
+                scales: {
+                    y: {
+                        ticks: {
+                            display: false  // y축 눈금 제거
+                        }
+                    }
+                },
+                plugins: {
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        color: 'black',
+                        font: {
+                            weight: 'bold'
+                        },
+                        formatter: function(value, context) {   // value값 그래프에 나오게 하기
+                            return value + '℃';
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
         });
     </script>
 </div>

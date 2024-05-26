@@ -136,7 +136,6 @@ public class ApiExplorer {
                     continue;
                 }
 
-                System.out.println(fcstDate + ","+ fcstTime);
                 WeatherDTO weatherdto = findOrCreateWeatherDTO(weatherList, fcstDate, fcstTime);
 
                 switch (category) {
@@ -160,6 +159,13 @@ public class ApiExplorer {
                         break;
                     case "SNO":  // 적설량 (cm)
                         weatherdto.setSNO(fcstValue);
+                        break;
+                    case "TMN":  // 일 최저기온(℃)
+                        weatherdto.setTMN(fcstValue);
+                        break;
+                    case "TMX":  // 일 최고기온(℃)
+                        weatherdto.setTMX(fcstValue);
+                        break;
                     default:
                         break;
                 }
