@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="">
+    <link rel="stylesheet" th:href="@{/main.css}">
     <style>
         button {
             border: none;
@@ -14,15 +14,21 @@
 <div>
     <div style="width : 100%; height : 100%; display: flex; justify-content: center;">
         <div style="margin-top : 10%; display: flex; flex-direction: column;">
-            <div style="display : flex; flex-direction : column;">
-                <span id="time"></span>
-                <div>
-                    <span>현재 기온은</span>
-                    <span id="temper" style="font-size : xxx-large;"></span>°C
+            <!--            <div style="display : flex; flex-direction : column;">-->
+            <!--                <span id="time"></span>-->
+            <!--                <div>-->
+            <!--                    <span>현재 기온은</span>-->
+            <!--                    <span id="temper" style="font-size : xxx-large;"></span>°C-->
+            <!--                </div>-->
+            <!--                <span id="sky" style="display: flex; justify-content: center;"></span>-->
+            <!--                <span id="pty" style="font-size : xxx-large;"></span>-->
+            <!--            </div>-->
+            <div class="swiper mySwiper">
+                <div id="weather-container" class="swiper-wrapper">
+                    <!-- Weather data will be dynamically inserted here -->
                 </div>
-                <span id="sky" style="display: flex; justify-content: center;"></span>
-                <span id="pty" style="font-size : xxx-large;"></span>
             </div>
+
             <input type="text" id="address" placeholder="주소">
             <input type="button" onclick="ExecDaumPostcode()" value="주소 검색"><br>
             <input type="text" hidden="hidden" id="latitude" name="latitude">
@@ -83,66 +89,180 @@
         }
 
         function sendCoordinates(latitude, longitude) {
-            var latitude =  latitude;
-            var longitude = longitude;
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", `/weatherData?nx=${latitude}&ny=${longitude}`, true);
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    var weatherDTO = JSON.parse(xhr.responseText);
-                    console.log(weatherDTO);
-                    displayWeatherInfo(weatherDTO);
-                }
-            };
-            xhr.send();
+            window.location.href = '/weatherData?nx=' + latitude + '&ny=' + longitude;
+            alert("te");
+<!--        -->
+<!--            var latitude =  latitude;-->
+<!--            var longitude = longitude;-->
+<!--            var xhr = new XMLHttpRequest();-->
+<!--            xhr.open("GET", `/weatherData?nx=${latitude}&ny=${longitude}`, true);-->
         }
 
-        function displayWeatherInfo(weatherDTO){
-            var timeSpan = document.getElementById("time");
-            var temperSpan = document.getElementById("temper");
-            var skySpan = document.getElementById("sky");
-            var ptySpan = document.getElementById("pty");
+<!--        function displayWeatherInfo(weatherDTOList) {-->
+<!--            var weatherContainer = document.getElementById("weather-container");-->
+<!--            weatherContainer.innerHTML = ""; // 이전 내용을 지웁니다.-->
 
-            if(weatherDTO.hasOwnProperty("fcstTime")){
-                var Time = convertToKoreanTime(weatherDTO.fcstTime);
-                timeSpan.textContent = Time;
-            }
+<!--            var itemsPerPage = 12; // 한 페이지당 표시될 항목 수-->
+<!--            var numPages = Math.ceil(weatherDTOList.length / itemsPerPage); // 전체 페이지 수-->
 
-            if (weatherDTO.hasOwnProperty("tmp")) {
-                temperSpan.textContent = weatherDTO.tmp;
-            }
+<!--            for (var page = 0; page < numPages; page++) {-->
+<!--                var sliderPage = document.createElement("div");-->
+<!--                sliderPage.className = "slider-page";-->
+<!--                sliderPage.style.display = (page === 0) ? "block" : "none"; // 첫 페이지만 보이도록 설정-->
 
-            if (weatherDTO.hasOwnProperty("sky")) {
-                if(weatherDTO.sky === 1) {
-                    skySpan.innerHTML = '<img src="img/clear-day.svg" style = "width: 100px; height: 100px;">';
-                } else if(weatherDTO.sky === 3) {
-                    skySpan.innerHTML = '<img src="img/partly-cloudy-day.svg" style = "width: 100px; height: 100px;">';
-                } else {
-                    skySpan.innerHTML = '<img src="img/cloudy.svg" style = "width: 100px; height: 100px;">';
-                }
-            }
+<!--                for (var i = page * itemsPerPage; i < (page + 1) * itemsPerPage && i < weatherDTOList.length; i++) {-->
+<!--                    var weatherDTO = weatherDTOList[i];-->
+<!--                    var weatherDiv = document.createElement("div");-->
+<!--                    weatherDiv.className = "weather-entry";-->
 
-            if (weatherDTO.hasOwnProperty("pty")) {
-                if(weatherDTO.pty === 1){
-                    ptySpan.textContent = "비";
-                } else if(weatherDTO.pty === 2){
-                    ptySpan.textContent = "비/눈";
-                } else if(weatherDTO.pty === 3){
-                    ptySpan.textContent = "눈";
-                } else if(weatherDTO.pty === 4){
-                    ptySpan.textContent = "소나기";
-                }
-            }
-        }
+<!--                    // TMP (기온) 표시-->
+<!--                    if (weatherDTO.tmp) {-->
+<!--                        var tmpSpan = document.createElement("p");-->
+<!--                        tmpSpan.textContent = weatherDTO.tmp + "°C";-->
+<!--                        tmpSpan.classList.add("temperature");-->
+<!--                        tmpSpan.style.fontSize = "xx-large";-->
+<!--                        weatherDiv.appendChild(tmpSpan);-->
+<!--                    }-->
 
-        function convertToKoreanTime(time) {
-            if (time >= 1200) {
-                return "오후 " + (time - 1200) / 100 + "시";
-            } else {
-                return "오전 " + time / 100 + "시";
-            }
-        }
+<!--                    // SKY (하늘 상태) 표시-->
+<!--                    if (weatherDTO.sky) {-->
+<!--                        var skyImage = document.createElement("img");-->
+<!--                        skyImage.style.width = "100px";-->
+<!--                        skyImage.style.height = "100px";-->
+<!--                        switch (weatherDTO.sky) {-->
+<!--                            case 3:  // 일부 구름-->
+<!--                                skyImage.src = "img/partly-cloudy-day.svg";-->
+<!--                                break;-->
+<!--                            case 4:  // 흐림-->
+<!--                                skyImage.src = "img/cloudy.svg";-->
+<!--                                break;-->
+<!--                            default: // 맑음-->
+<!--                                skyImage.src = "img/clear-day.svg";-->
+<!--                                break;-->
+<!--                        }-->
+<!--                        weatherDiv.appendChild(skyImage);-->
+<!--                    }-->
+
+<!--                    // PTY (강수 형태) 표시-->
+<!--                    if (weatherDTO.pty) {-->
+<!--                        var ptySpan = document.createElement("p");-->
+<!--                        ptySpan.textContent = "강수확률" + weatherDTO.pty+ "%";;-->
+<!--                        weatherDiv.appendChild(ptySpan);-->
+<!--                    }-->
+
+<!--                    // 날짜와 시간 표시-->
+<!--                    var fcstDateTime = document.createElement("p");-->
+<!--                    var timeText = convertToTime(weatherDTO.fcstDate,weatherDTO.fcstTime);-->
+<!--                    fcstDateTime.textContent = timeText;-->
+<!--                    weatherDiv.appendChild(fcstDateTime);-->
+<!--                    sliderPage.appendChild(weatherDiv);-->
+<!--                }-->
+<!--                weatherContainer.appendChild(sliderPage);-->
+<!--            }-->
+<!--            weatherContainer.appendChild(sliderPage);-->
+
+<!--             // 슬라이더 컨트롤 추가-->
+<!--        var prevButton = document.createElement("button");-->
+<!--        prevButton.textContent = "이전";-->
+<!--        prevButton.addEventListener("click", function() {-->
+<!--            showPage(currentPage - 1);-->
+<!--        });-->
+
+<!--        var nextButton = document.createElement("button");-->
+<!--        nextButton.textContent = "다음";-->
+<!--        nextButton.addEventListener("click", function() {-->
+<!--            showPage(currentPage + 1);-->
+<!--        });-->
+
+<!--        weatherContainer.appendChild(prevButton);-->
+<!--        weatherContainer.appendChild(nextButton);-->
+
+<!--        var currentPage = 0; // 현재 페이지-->
+<!--        showPage(currentPage); // 초기 페이지 표시-->
+
+<!--        function showPage(page) {-->
+<!--            var sliderPages = document.getElementsByClassName("slider-page");-->
+<!--            if (page < 0 || page >= sliderPages.length) {-->
+<!--                return;-->
+<!--            }-->
+<!--            for (var i = 0; i < sliderPages.length; i++) {-->
+<!--                sliderPages[i].style.display = "none";-->
+<!--            }-->
+<!--            sliderPages[page].style.display = "block";-->
+<!--            currentPage = page;-->
+<!--        }-->
+<!--        }-->
+
+<!--        function convertToTime(fcstDate,fcstTime) {-->
+<!--            // 현재 날짜와 시간 가져오기-->
+<!--            var now = new Date();-->
+<!--            // 예보 날짜와 시간 가져오기-->
+<!--            var forecastYear = parseInt(fcstDate.substring(0, 4));-->
+<!--            var forecastMonth = parseInt(fcstDate.substring(4, 6));-->
+<!--            var forecastDay = parseInt(fcstDate.substring(6, 8));-->
+<!--            var forecastHour = parseInt(fcstTime.substring(0, 2));-->
+
+<!--            // 날짜와 시간 문자열 초기화-->
+<!--            var dateText = "";-->
+<!--            var timeText = "";-->
+
+<!--            // 날짜 처리-->
+<!--            var diffDays = daysBetween(now, new Date(forecastYear, forecastMonth - 1, forecastDay));-->
+<!--            if (diffDays === 0) {-->
+<!--                dateText = "오늘";-->
+<!--            } else if (diffDays === 1) {-->
+<!--                dateText = "내일";-->
+<!--            } else if (diffDays === 2) {-->
+<!--                dateText = "내일 모레";-->
+<!--            }-->
+
+<!--            // 시간 처리-->
+<!--            if (forecastHour === 0) {-->
+<!--                timeText = dateText;-->
+<!--            } else {-->
+<!--                timeText = (forecastHour < 10 ? "0" + forecastHour : forecastHour) + "시";-->
+<!--            }-->
+<!--            return timeText;-->
+<!--        }-->
+
+<!--        // 날짜 간의 차이 계산 함수-->
+<!--        function daysBetween(date1, date2) {-->
+<!--            var oneDay = 1000 * 60 * 60 * 24;-->
+<!--            var timeDiff = Math.abs(date1.getTime() - date2.getTime());-->
+<!--            var diffDays = Math.ceil(timeDiff / oneDay);-->
+<!--            return diffDays;-->
+<!--        }-->
     </script>
+
+
+    <!--        function displayWeatherInfo(weatherDTOList){-->
+    <!--            var timeSpan = document.getElementById("time");-->
+    <!--            var temperSpan = document.getElementById("temper");-->
+    <!--            var skySpan = document.getElementById("sky");-->
+    <!--            var ptySpan = document.getElementById("pty");-->
+    <!--            for (var i = 0; i < weatherDTOList.length; i++) {-->
+    <!--                var weatherDTO = weatherDTOList[i];-->
+    <!--                timeSpan.textContent =  weatherDTO.fcstTime;-->
+    <!--                temperSpan.textContent = weatherDTO.tmp;-->
+    <!--                if(weatherDTO.sky === 1) {-->
+    <!--                    skySpan.innerHTML = '<img src="img/clear-day.svg" style = "width: 100px; height: 100px;">';-->
+    <!--                } else if(weatherDTO.sky === 3) {-->
+    <!--                    skySpan.innerHTML = '<img src="img/partly-cloudy-day.svg" style = "width: 100px; height: 100px;">';-->
+    <!--                } else {-->
+    <!--                    skySpan.innerHTML = '<img src="img/cloudy.svg" style = "width: 100px; height: 100px;">';-->
+    <!--                }-->
+
+    <!--                if(weatherDTO.pty === 1){-->
+    <!--                    ptySpan.textContent = "비";-->
+    <!--                } else if(weatherDTO.pty === 2){-->
+    <!--                    ptySpan.textContent = "비/눈";-->
+    <!--                } else if(weatherDTO.pty === 3){-->
+    <!--                    ptySpan.textContent = "눈";-->
+    <!--                } else if(weatherDTO.pty === 4){-->
+    <!--                    ptySpan.textContent = "소나기";-->
+    <!--                }-->
+    <!--            }-->
+    <!--        }-->
 </div>
 </body>
 </html>

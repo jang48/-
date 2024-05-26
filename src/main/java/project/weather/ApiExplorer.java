@@ -14,40 +14,31 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.w3c.dom.Element;
 
 @RequiredArgsConstructor
 @Controller
 public class ApiExplorer {
 
-    private final weatherDTO weatherdto;
+    private final WeatherDTO weatherdto;
+
+    LocalDateTime now = LocalDateTime.now();
+    String baseDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
     // 열거형으로 정의 후 사용
 //    enum WeatherValue {
 //        PTY, REH, RN1, T1H, POP, SKY
 //    }
 
-    public weatherDTO getWeatherInfo(double nx, double ny) throws IOException, JSONException {
+    public List<WeatherDTO> getWeatherInfo(double nx, double ny) throws IOException, JSONException {
 
-        LocalDateTime now = LocalDateTime.now();
         LocalDateTime yesterday = now.minusDays(1);
         String nxString = String.format("%.0f", nx);
         String nyString = String.format("%.0f", ny);
-        String baseDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String baseTime = null;
         int hour = now.getHour();
         if(hour >= 23 || hour < 2) {
@@ -112,11 +103,12 @@ public class ApiExplorer {
         rd.close();
         conn.disconnect();
         String result = sb.toString();
-        weatherDTO weatherDTO1 = parseJSON(result);
-        return weatherDTO1;
+        List<WeatherDTO> weatherDTOList= parseJSON(result);
+        return weatherDTOList;
     }
 
-    private weatherDTO parseJSON(String jsonString) throws JSONException {
+    private List<WeatherDTO> parseJSON(String jsonString) throws JSONException {
+        List<WeatherDTO> weatherList = null;
         try {
             if (jsonString == null || jsonString.isEmpty()) {
                 System.out.println("JSON 문자열이 null이거나 비어 있습니다.");
@@ -126,20 +118,26 @@ public class ApiExplorer {
             JSONObject body = response.getJSONObject("body");
             JSONObject items = body.getJSONObject("items");
             JSONArray itemArray = items.getJSONArray("item");
-            Double fcstValue;
-            List<weatherDTO> weatherList = new ArrayList<>();
+            String fcstValue;
+            weatherList = new ArrayList<>();
             // item 배열에서 각 항목을 출력 (예시)
             for (int i = 0; i < itemArray.length(); i++) {
                 JSONObject item = itemArray.getJSONObject(i);
                 String fcstDate = item.getString("fcstDate");
                 String fcstTime = item.getString("fcstTime");
-
-                weatherdto.setFcstDate(fcstDate);
-                weatherdto.setFcstTime(fcstTime);
-
                 String category = item.getString("category");
-                fcstValue = Double.valueOf(item.getString("fcstValue"));
-//                WeatherValue weatherValue = WeatherValue.valueOf(category);
+                fcstValue = item.getString("fcstValue");
+
+                // fcstDate와 fcstTime을 LocalDateTime 객체로 변환
+                LocalDateTime forecastDateTime = LocalDateTime.parse(fcstDate + fcstTime, DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
+
+                // fcstDate가 현재 날짜와 같고 fcstTime이 현재 시간보다 이전이지만 1시간 차이 이내이면 포함
+                if (forecastDateTime.isBefore(now) && forecastDateTime.plusHours(1).isBefore(now)) {
+                    continue;
+                }
+
+                System.out.println(fcstDate + ","+ fcstTime);
+                WeatherDTO weatherdto = findOrCreateWeatherDTO(weatherList, fcstDate, fcstTime);
 
                 switch (category) {
                     case "PTY":  // 강수형태
@@ -160,18 +158,32 @@ public class ApiExplorer {
                     case "SKY":  // 하늘상태
                         weatherdto.setSKY(fcstValue);
                         break;
-                    case "SNO":
+                    case "SNO":  // 적설량 (cm)
                         weatherdto.setSNO(fcstValue);
                     default:
                         break;
                 }
-                // DTO를 리스트에 추가
-                weatherList.add(weatherdto);
+                // DTO가 리스트에 없으면 새로 추가
+                if (!weatherList.contains(weatherdto)) {
+                    weatherList.add(weatherdto);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return weatherdto;
+        return weatherList;
+    }
+
+    private static WeatherDTO findOrCreateWeatherDTO(List<WeatherDTO> weatherList, String fcstDate, String fcstTime) {
+        for (WeatherDTO dto : weatherList) {
+            if (dto.getFcstDate().equals(fcstDate) && dto.getFcstTime().equals(fcstTime)) {
+                return dto;
+            }
+        }
+        WeatherDTO newDto = new WeatherDTO();
+        newDto.setFcstDate(fcstDate);
+        newDto.setFcstTime(fcstTime);
+        return newDto;
     }
 }
 

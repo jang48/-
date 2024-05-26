@@ -1,11 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <link rel="stylesheet" th:href="@{/main.css}">
+    <style>
+        button {
+            border: none;
+            outline: none;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 </head>
 <body>
+<div>
+    <div class="swiper-container">
+        <div class="swiper mySwiper">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide" style="display : flex;" th:each="dto : ${dtoList}">
+                    <div style="display : flex; justify-content: center;">
+                        <div th:each="dtoItem : ${dto}">
+                            <span th:text="${dtoItem.TMP}"></span>°
+                            <span th:if="${dtoItem.SKY} == 1">
+                            <img src="/img/clear-day.svg" style="width: 100px; height: 100px;">
+                            </span>
+                                <span th:if="${dtoItem.SKY} == 3">
+                                <img src="/img/partly-cloudy-day.svg" style="width: 100px; height: 100px;">
+                            </span>
+                                <span th:if="${dtoItem.SKY} == 4">
+                                <img src="/img/partly-cloudy-day.svg" style="width: 100px; height: 100px;">
+                            </span>
+                            <span th:text="${#strings.substring(dtoItem.fcstTime, 0, 2)}"></span>시
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </div>
 
-<input type="text" th:value="${dto.PTY}">
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=5bd204a017173d719eef05bd1456fcbf&libraries=services"></script>
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <!-- Initialize Swiper -->
+    <script>
+        var swiper = new Swiper(".mySwiper", {
+          navigation: {
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+          },
+        });
+    </script>
+</div>
 </body>
 </html>
