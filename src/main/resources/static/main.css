@@ -1,16 +1,12 @@
 html,
-body {
-  position: relative;
-  height: 100%;
-}
-
-body {
-  background: #eee;
-  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  color: #000;
+body,
+div{
+  background: #fff;
   margin: 0;
   padding: 0;
+  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  z-index : 0;
 }
 
 .swiper {
@@ -25,13 +21,4 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.swiper-container {
-    width: 50%;
-    height: 50%;
-    transform: translate(-50%, -50%);
-    position: absolute;
-    left: 50%;
-    top: 50%;
 }

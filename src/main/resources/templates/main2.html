@@ -8,49 +8,58 @@
 </head>
 <body>
 <div>
-    <div style="display: flex; flex-direction: column; align-items: center; margin-top : 50px;">
-        <div style="display : flex; align-items: center;">
+    <div style="display: flex; align-items: flex-end; justify-content: space-evenly; margin-top: 9%; height: 172px;">
+        <div style="display: flex; flex-direction: column; align-items: center">
+            <div style="display : flex; align-items: center;">
             <span th:if="${nowWeather.SKY} == 1">
                 <img src="/img/clear-day.svg" style="width: 100px;">
             </span>
-            <span th:if="${nowWeather.SKY} == 3">
+                <span th:if="${nowWeather.SKY} == 3">
                 <img src="/img/partly-cloudy-day.svg" style="width: 100px;">
             </span>
-            <span th:if="${nowWeather.SKY} == 4">
+                <span th:if="${nowWeather.SKY} == 4">
                 <img src="/img/partly-cloudy-day.svg" style="width: 100px;">
             </span>
-            <span th:text="${nowWeather.TMP} +'°'" style="font-size : xxx-large; margin-left: -38px;"></span>
+                <span th:text="${nowWeather.TMP} +'°'" style="font-size : xxx-large; margin-left: -38px;"></span>
+            </div>
+            <div>
+                <span th:text="'습도 ' + ${nowWeather.REH} + '%'"></span>
+            </div>
         </div>
-        <div>
-            <span th:text="'습도 ' + ${nowWeather.REH} + '%'"></span>
+        <div style="display : flex;">
+            <div style="width : 312px; height : 150px;">
+                <canvas id="myChart"></canvas>
+            </div>
         </div>
     </div>
-    <div class="swiper-container">
-        <div class="swiper mySwiper" style="height : 210px;">
-            <div class="swiper-wrapper">
-                <div class="swiper-slide" style="display : flex;" th:each="dto : ${dtoList}">
-                    <div style="display : flex; justify-content: center;">
-                        <div th:each="dtoItem : ${dto}">
-                            <span th:text="${dtoItem.TMP}"></span>°
-                            <span th:if="${dtoItem.SKY} == 1">
-                            <img src="/img/clear-day.svg">
-                            </span>
-                            <span th:if="${dtoItem.SKY} == 3">
-                                <img src="/img/partly-cloudy-day.svg">
-                            </span>
-                            <span th:if="${dtoItem.SKY} == 4">
-                                <img src="/img/partly-cloudy-day.svg">
-                            </span>
-                            <span th:text="${#strings.substring(dtoItem.fcstTime, 0, 2)}+시"
-                                  style="font-size : small;"></span>
+    <div style="width: 100%; left : 50%; top : 50%; ">
+        <div class="swiper-container" style="display : flex; flex-direction: column;">
+            <div class="swiper mySwiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide" style="display : flex;" th:each="dto : ${dtoList}">
+                        <div style="display : flex; justify-content: center;">
+                            <div th:each="dtoItem : ${dto}">
+                                <div th:if="${dtoItem.fcstDate + dtoItem.fcstTime  >= currentDay + currentTime}"
+                                     style="display: flex;">
+                                    <div style="display: flex; flex-direction: column; justify-content: center; margin : 5px;">
+                                        <span th:text="${dtoItem.TMP + '°'}"></span>
+                                        <img src="/img/clear-day.svg" th:if="${dtoItem.SKY} == 1" style="width : 50px;">
+                                        <img src="/img/partly-cloudy-day.svg" th:if="${dtoItem.SKY} == 3"
+                                             style="width : 50px;">
+                                        <img src="/img/partly-cloudy-day.svg" th:if="${dtoItem.SKY} == 4"
+                                             style="width : 50px;">
+                                        <span th:text="${#strings.substring(dtoItem.fcstTime, 0, 2)}+시"
+                                              style="font-size : small;"></span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
             </div>
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
         </div>
-        <canvas id="myChart" style="width : 100px; height : 150px;"></canvas>
     </div>
 
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>

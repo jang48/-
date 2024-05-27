@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Controller
@@ -24,7 +24,7 @@ public class weatherController {
     private final ApiExplorer apiExplorer;
 
     @GetMapping("/")
-    public String test() {
+    public String test(Model model) {
         return "main";
     }
 
@@ -69,7 +69,7 @@ public class weatherController {
         WeatherDTO tomorrowData = getFirstDataByDate(weatherDTOList, tomorrow);
         WeatherDTO dayAfterTomorrowData = getFirstDataByDate(weatherDTOList, dayAfterTomorrow);
 
-        WeatherDTO nowWeather = weatherDTOList.get(0);
+        WeatherDTO nowWeather = weatherDTOList.get(2);
 
         model.addAttribute("today",todayData.getFcstDate());
         model.addAttribute("today2",todayData.getTMN());
@@ -80,12 +80,23 @@ public class weatherController {
         model.addAttribute("tomorrow3",tomorrowData.getTMX());
 
         model.addAttribute("dayAfterTomorrow",dayAfterTomorrowData.getFcstDate());
-        model.addAttribute("dayAfterTomorrow2",dayAfterTomorrowData.getTMN());
-        model.addAttribute("dayAfterTomorrow3",dayAfterTomorrowData.getTMX());
+        model.addAttribute("dayAfterTomorrow2",Objects.equals(dayAfterTomorrowData.getTMN(), "") ? '0' : dayAfterTomorrowData.getTMN());
+        model.addAttribute("dayAfterTomorrow3",Objects.equals(dayAfterTomorrowData.getTMN(), "") ? '0' : dayAfterTomorrowData.getTMX());
 
         model.addAttribute("dtoList", dtoList);
         model.addAttribute("nowWeather", nowWeather);
-        return "main2";
+
+        // 현재 시간의 정각시간부터 표현하기 위해 데이터 제공
+        LocalDateTime now = LocalDateTime.now();
+        now = now.withMinute(0);
+        String currentTime = now.format(DateTimeFormatter.ofPattern("HHmm"));
+        String currentDay = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        model.addAttribute("currentTime", currentTime);
+        model.addAttribute("currentDay", currentDay);
+        model.addAttribute("currentDay", currentDay);
+        model.addAttribute("currentDay", currentDay);
+
+        return "main";
     }
 
     private WeatherDTO getFirstDataByDate(List<WeatherDTO> dtoList, LocalDate date) {

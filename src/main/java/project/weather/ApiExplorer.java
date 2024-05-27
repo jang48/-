@@ -130,13 +130,23 @@ public class ApiExplorer {
 
                 // fcstDate와 fcstTime을 LocalDateTime 객체로 변환
                 LocalDateTime forecastDateTime = LocalDateTime.parse(fcstDate + fcstTime, DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
+                WeatherDTO weatherdto = null;
 
                 // fcstDate가 현재 날짜와 같고 fcstTime이 현재 시간보다 이전이지만 1시간 차이 이내이면 포함
                 if (forecastDateTime.isBefore(now) && forecastDateTime.plusHours(1).isBefore(now)) {
+                    if (category.equals("TMN")) {
+                        weatherdto = findOrCreateWeatherDTO(weatherList, fcstDate, fcstTime);
+                        weatherdto.setTMN(fcstValue);
+                        weatherList.add(weatherdto);
+                    } else if (category.equals("TMX")) {
+                        weatherdto = findOrCreateWeatherDTO(weatherList, fcstDate, fcstTime);
+                        weatherdto.setTMX(fcstValue);
+                        weatherList.add(weatherdto);
+                    }
                     continue;
                 }
 
-                WeatherDTO weatherdto = findOrCreateWeatherDTO(weatherList, fcstDate, fcstTime);
+                weatherdto = findOrCreateWeatherDTO(weatherList, fcstDate, fcstTime);
 
                 switch (category) {
                     case "PTY":  // 강수형태
