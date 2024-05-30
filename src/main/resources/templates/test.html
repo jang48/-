@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" th:href="@{/main.css}">
+    <title>OOTD</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+    <script type="text/javascript"
+            src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APP_KEY&libraries=services,clusterer,drawing"></script>
+</head>
+<body>
+<div>
+    <span th:text="${address}" style="font-size : xxx-large;"></span>
+    <input type="text" id="address" placeholder="주소">
+    <button onclick="ExecDaumPostcode()">주소 검색</button>
+    <button onclick="reloadMap()">현재 위치로 이동</button>
+</div>
+<div>
+    <div style="display: flex; align-items: center; justify-content: space-evenly; height: 172px; margin-top : 50px;">
+        <div style="display: flex; flex-direction: column; align-items: center">
+            <div style="display : flex; align-items: center;">
+                <img th:if="${nowWeather.SKY} == 1" src="/img/clear-day.svg" style="width: 100px;">
+                <img th:if="${nowWeather.SKY} == 3" src="/img/partly-cloudy-day.svg" style="width: 100px;">
+                <img th:if="${nowWeather.SKY} == 4" src="/img/partly-cloudy-day.svg" style="width: 100px;">
+                <span th:text="${nowWeather.TMP} +'°'" style="font-size : xxx-large; margin-left: -38px;"></span>
+            </div>
+            <div>
+                <span th:text="'습도 ' + ${nowWeather.REH} + '%'"></span>
+            </div>
+        </div>
+        <div id="map" style="width: 17%; height: 151px;"></div>
+        <div style="display : flex;">
+            <div style="width : 312px; height : 150px;">
+                <canvas id="myChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div style="width: 850px; margin-top : 50px;">
+        <div class="swiper-container">
+            <div class="swiper mySwiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide" style="display : flex;" th:each="dto : ${dtoList}">
+                        <div style="display : flex; justify-content: center;">
+                            <div th:each="dtoItem : ${dto}" style="display: flex; justify-content: center;">
+                                <div th:if="${dtoItem.fcstDate + dtoItem.fcstTime  >= currentDay + currentTime}"
+                                     style="display: flex; justify-content: center;">
+                                    <div style="display: flex; flex-direction: column; align-items: center; margin : 5px;">
+                                        <span th:text="${dtoItem.TMP + '°'}"></span>
+                                        <img src="/img/clear-day.svg" th:if="${dtoItem.SKY} == 1"
+                                             style="width : 50px;">
+                                        <img src="/img/partly-cloudy-day.svg" th:if="${dtoItem.SKY} == 3"
+                                             style="width : 50px;">
+                                        <img src="/img/partly-cloudy-day.svg" th:if="${dtoItem.SKY} == 4"
+                                             style="width : 50px;">
+                                        <span th:text="${#strings.substring(dtoItem.fcstTime, 0, 2)}+시"
+                                              style="font-size : small;"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
+        </div>
+    </div>
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=5bd204a017173d719eef05bd1456fcbf&libraries=services"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=APIKEY&libraries=LIBRARY"></script>
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <!-- Chart JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script>
+
+        var latitude = [[${latitude}]];
+        var longitude = [[${longitude}]];
+
+        var mapContainer = document.getElementById('map'); // 지도를 표시할 div
+        var mapOption = {
+            center: new daum.maps.LatLng(33.450701, 126.570667), // 지도의 중심좌표
+            level: 7 // 지도의 확대 레벨
+        };
+
+        // 지도를 생성합니다
+        var map = new kakao.maps.Map(mapContainer, mapOption);
+
+        // 마커를 생성합니다
+        var marker = new kakao.maps.Marker({
+            position: map.getCenter()
+        });
+        marker.setMap(map);
+
+        var geocoder = new kakao.maps.services.Geocoder();
+
+        function success(position) {
+
+            var coords = new kakao.maps.LatLng(latitude, longitude);
+
+            // 지도의 중심을 현재 위치로 이동시킵니다
+            map.setCenter(coords);
+
+            // 마커의 위치를 현재 위치로 이동시킵니다
+            marker.setPosition(coords);
+
+            // 지도를 재배치합니다 (필요한 경우)
+            map.relayout();
+        }
+
+        function error() {
+            alert('위치를 가져올 수 없습니다.');
+        }
+
+        function reloadMap() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(success, error);
+            } else {
+                alert('GPS를 지원하지 않습니다');
+            }
+        }
+
+        function ExecDaumPostcode() {
+            new daum.Postcode({
+                oncomplete: function(data) {
+                    var addr = data.address; // 최종 주소 변수
+
+                    // 주소 정보를 해당 필드에 넣는다.
+                    document.getElementById("address").value = addr;
+
+                    // 주소로 상세 정보를 검색
+                    geocoder.addressSearch(data.address, function(results, status) {
+                        // 정상적으로 검색이 완료됐으면
+                        if (status === kakao.maps.services.Status.OK) {
+
+                            var result = results[0]; //첫번째 결과의 값을 활용
+                            var roadAddress = results[0].road_address;
+                            var sido = roadAddress.region_1depth_name;
+                            var gugun = roadAddress.region_2depth_name;
+                            var address = sido+' '+gugun;
+
+                            // 해당 주소에 대한 좌표를 받아서
+                            var coords = new daum.maps.LatLng(result.y, result.x);
+                            // 지도를 보여준다.
+                            mapContainer.style.display = "block";
+                            map.relayout();
+                            // 지도 중심을 변경한다.
+                            map.setCenter(coords);
+                            // 마커를 결과값으로 받은 위치로 옮긴다.
+                            marker.setPosition(coords)
+
+                            if (confirm("입력한 주소가 맞습니까?")) {
+                            sendCoordinates(result.y, result.x, address);
+                            }
+                        }
+                    });
+                }
+            }).open();
+        }
+
+        function sendCoordinates(latitude, longitude, address) {
+           window.location.href = '/weatherData?nx=' + latitude + '&ny=' + longitude + '&address=' + address;
+        }
+
+        var swiper = new Swiper(".mySwiper", {
+          navigation: {
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+          },
+        });
+
+        // 페이지 로드 시 지도를 현재 위치로 설정합니다
+        window.onload = reloadMap;
+
+        // 차트 만들기
+        let myCt = document.getElementById('myChart');
+
+        // 차트에 들어갈 데이터 가져오기
+        var todayData =  [[${today}]];
+        var todayData2 =  [[${today2}]];
+        var todayData3 =  [[${today3}]];
+
+        var tomorrow =  [[${tomorrow}]];
+        var tomorrow2 =  [[${tomorrow2}]];
+        var tomorrow3 =  [[${tomorrow3}]];
+
+        var dayAfterTomorrow =  [[${dayAfterTomorrow}]];
+        var dayAfterTomorrow2 =  [[${dayAfterTomorrow2}]];
+        var dayAfterTomorrow3 =  [[${dayAfterTomorrow3}]];
+
+        let myChart = new Chart(myCt, {
+              type: 'line',
+              data: {
+                labels: [
+                    String(todayData).substring(4,6)+'.'+String(todayData).substring(6,8),  // 가져온데이터를 String값으로 변경 후 substring 함수 적용
+                    String(tomorrow).substring(4,6)+'.'+String(tomorrow).substring(6,8),
+                    String(dayAfterTomorrow).substring(4,6)+'.'+String(dayAfterTomorrow).substring(6,8)
+                ],
+                datasets: [
+                  {
+                    label: '일 최저기온(℃)',
+                    data: [todayData2,tomorrow2,dayAfterTomorrow2],
+                    backgroundColor: '#00C7E2',
+                    maxBarThickness: 30
+                  },
+                  {
+                    label: '일 최고기온(℃)',
+                    data: [todayData3,tomorrow3,dayAfterTomorrow3],
+                    backgroundColor: '#FF7DA8',
+                    maxBarThickness: 30
+                  }
+                ]
+              },
+                options: {
+                    scales: {
+                        y: {
+                            ticks: {
+                                display: false  // y축 눈금 제거
+                            }
+                        }
+                    },
+                    plugins: {
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: 'black',
+                            font: {
+                                weight: 'bold'
+                            },
+                            formatter: function(value, context) {   // value값 그래프에 나오게 하기
+                                return value + '℃';
+                            }
+                        }
+                    }
+                },
+            plugins: [ChartDataLabels]
+        });
+    </script>
+</div>
+</body>
+</html>

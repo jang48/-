@@ -1,250 +1,79 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" th:href="@{/main.css}">
+    <meta charset="utf-8">
+    <title>OOTD</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+    <script type="text/javascript"
+            src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APP_KEY&libraries=services,clusterer,drawing"></script>
 </head>
 <body>
 <div>
-    <div style="width : 100%; height : 100%; display: flex; justify-content: center; flex-direction: column;">
-        <div style="display: flex;justify-content: space-around; align-items: center; margin-top: 13%;">
-            <button id="find-me" style="display : flex; border: none; padding: 0; background-color: transparent;">
-                <img src="/img/gps.png" style="width: 25px;" alt="GPS">
-                <p id="status"></p>
-                <a id="link" target="_blank" style="display:none;"></a>
-            </button>
-            <div>
-                <input type="text" id="address" placeholder="주소">
-                <input type="button" onclick="ExecDaumPostcode()" value="주소 검색"><br>
-                <input type="text" hidden="hidden" id="latitude" name="latitude">
-                <input type="text" hidden="hidden" id="longitude" name="longitude">
-            </div>
-        </div>
-        <div th:if="${today}">
-            <div style="display: flex; align-items: center; justify-content: center; height: 172px;">
-                <div style="display: flex; flex-direction: column; align-items: center">
-                    <div style="display : flex; align-items: center;">
-                        <img th:if="${nowWeather.SKY} == 1" src="/img/clear-day.svg" style="width: 100px;">
-                        <img th:if="${nowWeather.SKY} == 3" src="/img/partly-cloudy-day.svg" style="width: 100px;">
-                        <img th:if="${nowWeather.SKY} == 4" src="/img/partly-cloudy-day.svg" style="width: 100px;">
-                        <span th:text="${nowWeather.TMP} +'°'" style="font-size : xxx-large; margin-left: -38px;"></span>
-                    </div>
-                    <div>
-                        <span th:text="'습도 ' + ${nowWeather.REH} + '%'"></span>
-                    </div>
-                </div>
-                <div class="map" id="map" style="width:200px; height:200px; border-radius : 50%;"></div>
-                <div style="display : flex;">
-                    <div style="width : 312px; height : 150px;">
-                        <canvas id="myChart"></canvas>
-                    </div>
-                </div>
-            </div>
-                <div class="swiper-container" style="display : flex; flex-direction: column; margin-top: 65px;">
-                    <div class="swiper mySwiper">
-                        <div class="swiper-wrapper">
-                            <div class="swiper-slide" style="display : flex;" th:each="dto : ${dtoList}">
-                                <div style="display : flex; justify-content: center;">
-                                    <div th:each="dtoItem : ${dto}">
-                                        <div th:if="${dtoItem.fcstDate + dtoItem.fcstTime  >= currentDay + currentTime}"
-                                             style="display: flex;">
-                                            <div style="display: flex; flex-direction: column; justify-content: center; margin : 5px;">
-                                                <span th:text="${dtoItem.TMP + '°'}"></span>
-                                                <img src="/img/clear-day.svg" th:if="${dtoItem.SKY} == 1" style="width : 50px;">
-                                                <img src="/img/partly-cloudy-day.svg" th:if="${dtoItem.SKY} == 3"
-                                                     style="width : 50px;">
-                                                <img src="/img/partly-cloudy-day.svg" th:if="${dtoItem.SKY} == 4"
-                                                     style="width : 50px;">
-                                                <span th:text="${#strings.substring(dtoItem.fcstTime, 0, 2)}+시"
-                                                      style="font-size : small;"></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="swiper-button-next"></div>
-                        <div class="swiper-button-prev"></div>
-                    </div>
-                </div>
-        </div>
-    </div>
-    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-    <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=5bd204a017173d719eef05bd1456fcbf&libraries=services"></script>
-
-    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-    <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=567103d216ad14d1e5ab67c2d7a8e7a6&libraries=services"></script>
-    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=APIKEY&libraries=LIBRARY"></script>
-    <!-- Swiper JS -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <!-- Chart JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-    <!-- Initialize Swiper -->
-    <script>
-        var mapContainer = document.getElementById('map'), // 지도를 표시할 div
-              mapOption = {
-                  center: new daum.maps.LatLng(37.537187, 127.005476), // 지도의 중심좌표
-                  level: 9 // 지도의 확대 레벨
-              };
-
-        var changedCoor = new kakao.maps.LatLng(37.537187, 127.005476);
-
-        // 지도를 생성합니다
-        var map = new kakao.maps.Map(mapContainer, mapOption);
-
-        // 주소-좌표 변환 객체를 생성합니다
-        var geocoder = new kakao.maps.services.Geocoder();
-
-        var marker = new kakao.maps.Marker({
-           position: new kakao.maps.LatLng(37.537187, 127.005476),
-           map: map
-        });
-
-
-        function ExecDaumPostcode() {
-            new daum.Postcode({
-                oncomplete: function(data) {
-                    var addr = data.address; // 최종 주소 변수
-
-                    // 주소 정보를 해당 필드에 넣는다.
-                    document.getElementById("address").value = addr;
-                    // 주소로 상세 정보를 검색
-                    geocoder.addressSearch(data.address, function(results, status) {
-                        // 정상적으로 검색이 완료됐으면
-                        if (status === daum.maps.services.Status.OK) {
-
-                            var result = results[0]; //첫번째 결과의 값을 활용
-
-                            // 해당 주소에 대한 좌표를 받아서
-                            var coords = new daum.maps.LatLng(result.y, result.x);
-                            // 지도를 보여준다.
-                            mapContainer.style.display = "block";
-                            map.relayout();
-                            // 지도 중심을 변경한다.
-                            map.setCenter(coords);
-                            // 마커를 결과값으로 받은 위치로 옮긴다.
-                            marker.setPosition(coords)
-
-<!--                             document.getElementById("latitude").value = result.y;-->
-<!--                             document.getElementById("longitude").value = result.x;-->
-                             sendCoordinates(result.y,result.x);
-                        }
-                    });
-                }
-            }).open();
-        }
-        function geoFindMe() {
-          const status = document.querySelector("#status");
-          const mapLink = document.querySelector("#link");
-
-          mapLink.href = "";
-          mapLink.textContent = "";
-
-          function success(position) {
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
-
-            status.textContent = "";
-            mapLink.href = `https://www.openstreetmap.org/#map=18/${latitude}/${longitude}`;
-            mapLink.textContent = `위도: ${latitude} °, 경도: ${longitude} °`;
-
-<!--            document.getElementById("latitude").value = latitude;-->
-<!--            document.getElementById("longitude").value = longitude;-->
-            sendCoordinates(latitude,longitude);
-          }
-
-          function error() {
-            status.textContent = "현재 위치를 가져올 수 없음";
-          }
-
-          if (!navigator.geolocation) {
-            status.textContent = "브라우저가 위치 정보를 지원하지 않음";
-          } else {
-            status.textContent = "위치 파악 중…";
-            navigator.geolocation.getCurrentPosition(success, error);
-          }
-        }
-
-        document.querySelector("#find-me").addEventListener("click", geoFindMe);
-
-        function sendCoordinates(latitude, longitude) {
-            window.location.href = '/weatherData?nx=' + latitude + '&ny=' + longitude;
-        }
-
-
-        var swiper = new Swiper(".mySwiper", {
-          navigation: {
-            nextEl: ".swiper-button-next",
-            prevEl: ".swiper-button-prev",
-          },
-        });
-
-        // 차트 만들기
-        let myCt = document.getElementById('myChart');
-
-        // 차트에 들어갈 데이터 가져오기
-        var todayData =  [[${today}]];
-        var todayData2 =  [[${today2}]];
-        var todayData3 =  [[${today3}]];
-
-        var tomorrow =  [[${tomorrow}]];
-        var tomorrow2 =  [[${tomorrow2}]];
-        var tomorrow3 =  [[${tomorrow3}]];
-
-        var dayAfterTomorrow =  [[${dayAfterTomorrow}]];
-        var dayAfterTomorrow2 =  [[${dayAfterTomorrow2}]];
-        var dayAfterTomorrow3 =  [[${dayAfterTomorrow3}]];
-
-        let myChart = new Chart(myCt, {
-          type: 'line',
-          data: {
-            labels: [
-                String(todayData).substring(4,6)+'.'+String(todayData).substring(6,8),  // 가져온데이터를 String값으로 변경 후 substring 함수 적용
-                String(tomorrow).substring(4,6)+'.'+String(tomorrow).substring(6,8),
-                String(dayAfterTomorrow).substring(4,6)+'.'+String(dayAfterTomorrow).substring(6,8)
-            ],
-            datasets: [
-              {
-                label: '일 최저기온(℃)',
-                data: [todayData2,tomorrow2,dayAfterTomorrow2],
-                backgroundColor: '#00C7E2',
-                maxBarThickness: 30
-              },
-              {
-                label: '일 최고기온(℃)',
-                data: [todayData3,tomorrow3,dayAfterTomorrow3],
-                backgroundColor: '#FF7DA8',
-                maxBarThickness: 30
-              }
-            ]
-          },
-            options: {
-                scales: {
-                    y: {
-                        ticks: {
-                            display: false  // y축 눈금 제거
-                        }
-                    }
-                },
-                plugins: {
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        color: 'black',
-                        font: {
-                            weight: 'bold'
-                        },
-                        formatter: function(value, context) {   // value값 그래프에 나오게 하기
-                            return value + '℃';
-                        }
-                    }
-                }
-            },
-            plugins: [ChartDataLabels]
-        });
-    </script>
+    <input type="text" id="sample5_address" placeholder="주소">
+    <input type="button" onclick="sample5_execDaumPostcode()" value="주소 검색"><br>
+    <div id="map" style="width:300px;height:300px;margin-top:10px;display:none"></div>
 </div>
-</body>
-</html>
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=5bd204a017173d719eef05bd1456fcbf&libraries=services"></script>
+
+<script>
+    var mapContainer = document.getElementById('map'), // 지도를 표시할 div
+        mapOption = {
+            center: new daum.maps.LatLng(37.537187, 127.005476), // 지도의 중심좌표
+            level: 5 // 지도의 확대 레벨
+        };
+
+    //지도를 미리 생성
+    var map = new daum.maps.Map(mapContainer, mapOption);
+    //주소-좌표 변환 객체를 생성
+    var geocoder = new daum.maps.services.Geocoder();
+    //마커를 미리 생성
+    var marker = new daum.maps.Marker({
+        position: new daum.maps.LatLng(37.537187, 127.005476),
+        map: map
+    });
+
+
+    function sample5_execDaumPostcode() {
+        new daum.Postcode({
+            oncomplete: function(data) {
+                var addr = data.address; // 최종 주소 변수
+
+                // 주소 정보를 해당 필드에 넣는다.
+                document.getElementById("sample5_address").value = addr;
+                // 주소로 상세 정보를 검색
+                geocoder.addressSearch(data.address, function(results, status) {
+                    // 정상적으로 검색이 완료됐으면
+                    if (status === daum.maps.services.Status.OK) {
+
+                        var result = results[0]; //첫번째 결과의 값을 활용
+                        var roadAddress = results[0].road_address;
+                        var sido = roadAddress.region_1depth_name;
+                        var gugun = roadAddress.region_2depth_name;
+                        var address = sido+' '+gugun;
+
+                        // 해당 주소에 대한 좌표를 받아서
+                        var coords = new daum.maps.LatLng(result.y, result.x);
+                        // 지도를 보여준다.
+                        mapContainer.style.display = "block";
+                        map.relayout();
+                        // 지도 중심을 변경한다.
+                        map.setCenter(coords);
+                        // 마커를 결과값으로 받은 위치로 옮긴다.
+                        marker.setPosition(coords)
+
+                        if (confirm("입력한 주소가 맞습니까?")) {
+<!--                            sendCoordinates(result.y, result.x, addr);-->\
+                            sendCoordinates(result.y, result.x, address);
+                        }
+                    }
+                });
+            }
+        }).open();
+    }
+
+    function sendCoordinates(latitude, longitude, address) {
+       window.location.href = '/weatherData?nx=' + latitude + '&ny=' + longitude + '&address=' + address;
+    }
+
+</script>
