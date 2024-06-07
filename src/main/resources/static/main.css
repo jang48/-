@@ -1,3 +1,10 @@
+@font-face {
+    font-family: 'SUITE-Regular';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+}
+
 body, html {
     height: 100%;
     margin: 0;
@@ -5,7 +12,14 @@ body, html {
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    font-family: 'SUITE-Regular';
 }
+
+button{
+    border: 0;
+    background-color: transparent;
+}
+
 .container {
     width: 850px;
     margin-top: 50px;

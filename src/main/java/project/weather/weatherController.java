@@ -89,12 +89,16 @@ public class weatherController {
         // 현재 시간의 정각시간부터 표현하기 위해 데이터 제공
         LocalDateTime now = LocalDateTime.now();
         now = now.withMinute(0);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         String currentTime = now.format(DateTimeFormatter.ofPattern("HHmm"));
-        String currentDay = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String todayStr = today.format(formatter);
+        String tomorrowStr = tomorrow.format(formatter);
+        String dayAfterTomorrowStr = dayAfterTomorrow.format(formatter);
+
         model.addAttribute("currentTime", currentTime);
-        model.addAttribute("currentDay", currentDay);
-        model.addAttribute("currentDay", currentDay);
-        model.addAttribute("currentDay", currentDay);
+        model.addAttribute("todayStr", todayStr);
+        model.addAttribute("tomorrowStr", tomorrowStr);
+        model.addAttribute("dayAfterTomorrowStr", dayAfterTomorrowStr);
 
         return "test";
     }

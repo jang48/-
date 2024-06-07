@@ -7,22 +7,50 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
     <script type="text/javascript"
             src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APP_KEY&libraries=services,clusterer,drawing"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const todayStr = [[${todayStr}]];
+            const tomorrowStr = [[${tomorrowStr}]];
+            const dayAfterTomorrowStr = [[${dayAfterTomorrowStr}]];
+
+            document.querySelectorAll(".fcstTimeSpan").forEach(function(span) {
+                const fcstDate = span.getAttribute("data-fcstDate");
+                const fcstTime = span.getAttribute("data-fcstTime");
+
+                if (fcstTime === "0000") {
+                    if (fcstDate == todayStr) {
+                        span.textContent = "오늘";
+                    } else if (fcstDate == tomorrowStr) {
+                        span.textContent = "내일";
+                    } else if (fcstDate == dayAfterTomorrowStr) {
+                        span.textContent = "모레";
+                console.log("4");
+                    }
+                } else {
+                    span.textContent = fcstTime.substring(0, 2) + "시";
+                }
+            });
+        });
+    </script>
 </head>
 <body>
-<div>
+<div style="width : 100%;">
     <span th:text="${address}" style="font-size : xxx-large;"></span>
-    <input type="text" id="address" placeholder="주소">
-    <button onclick="ExecDaumPostcode()">주소 검색</button>
-    <button onclick="reloadMap()">현재 위치로 이동</button>
+    <button onclick="ExecDaumPostcode()">
+        <img src="/img/search.png" style="width: 24px; cursor: pointer;">
+    </button>
 </div>
+<!--    <input type="text" id="address" placeholder="주소"> -->
 <div>
-    <div style="display: flex; align-items: center; justify-content: space-evenly; height: 172px; margin-top : 50px;">
+    <div style="display: flex; align-items: center; justify-content: space-evenly; height: 172px; margin-top : 5px;">
         <div style="display: flex; flex-direction: column; align-items: center">
-            <div style="display : flex; align-items: center;">
-                <img th:if="${nowWeather.SKY} == 1" src="/img/clear-day.svg" style="width: 100px;">
-                <img th:if="${nowWeather.SKY} == 3" src="/img/partly-cloudy-day.svg" style="width: 100px;">
-                <img th:if="${nowWeather.SKY} == 4" src="/img/partly-cloudy-day.svg" style="width: 100px;">
-                <span th:text="${nowWeather.TMP} +'°'" style="font-size : xxx-large; margin-left: -38px;"></span>
+            <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                <div style="display : flex; align-items: center;">
+                    <img th:if="${nowWeather.SKY} == 1" src="/img/clear-day.svg" style="width: 100px;">
+                    <img th:if="${nowWeather.SKY} == 3" src="/img/partly-cloudy-day.svg" style="width: 100px;">
+                    <img th:if="${nowWeather.SKY} == 4" src="/img/partly-cloudy-day.svg" style="width: 100px;">
+                    <span th:text="${nowWeather.TMP} +'°'" style="font-size : xxx-large; margin-left: -38px;"></span>
+                </div>
             </div>
             <div>
                 <span th:text="'습도 ' + ${nowWeather.REH} + '%'"></span>
@@ -42,7 +70,7 @@
                     <div class="swiper-slide" style="display : flex;" th:each="dto : ${dtoList}">
                         <div style="display : flex; justify-content: center;">
                             <div th:each="dtoItem : ${dto}" style="display: flex; justify-content: center;">
-                                <div th:if="${dtoItem.fcstDate + dtoItem.fcstTime  >= currentDay + currentTime}"
+                                <div th:if="${dtoItem.fcstDate + dtoItem.fcstTime  >= todayStr + currentTime}"
                                      style="display: flex; justify-content: center;">
                                     <div style="display: flex; flex-direction: column; align-items: center; margin : 5px;">
                                         <span th:text="${dtoItem.TMP + '°'}"></span>
@@ -52,7 +80,9 @@
                                              style="width : 50px;">
                                         <img src="/img/partly-cloudy-day.svg" th:if="${dtoItem.SKY} == 4"
                                              style="width : 50px;">
-                                        <span th:text="${#strings.substring(dtoItem.fcstTime, 0, 2)}+시"
+<!--                                        <span th:text="${#strings.substring(dtoItem.fcstTime, 0, 2)}+시"-->
+<!--                                              style="font-size : small;"></span>-->
+                                        <span class="fcstTimeSpan" th:attr="data-fcstDate=${dtoItem.fcstDate},data-fcstTime=${dtoItem.fcstTime}"
                                               style="font-size : small;"></span>
                                     </div>
                                 </div>
@@ -81,7 +111,7 @@
         var mapContainer = document.getElementById('map'); // 지도를 표시할 div
         var mapOption = {
             center: new daum.maps.LatLng(33.450701, 126.570667), // 지도의 중심좌표
-            level: 7 // 지도의 확대 레벨
+            level: 8 // 지도의 확대 레벨
         };
 
         // 지도를 생성합니다
@@ -193,9 +223,9 @@
               type: 'line',
               data: {
                 labels: [
-                    String(todayData).substring(4,6)+'.'+String(todayData).substring(6,8),  // 가져온데이터를 String값으로 변경 후 substring 함수 적용
-                    String(tomorrow).substring(4,6)+'.'+String(tomorrow).substring(6,8),
-                    String(dayAfterTomorrow).substring(4,6)+'.'+String(dayAfterTomorrow).substring(6,8)
+                    '오늘 ( ' + String(todayData).substring(4,6)+'.'+String(todayData).substring(6,8) +' )',  // 가져온데이터를 String값으로 변경 후 substring 함수 적용
+                    '내일 ( '+ String(tomorrow).substring(4,6)+'.'+String(tomorrow).substring(6,8)+' )',
+                    '모레 ( ' + String(dayAfterTomorrow).substring(4,6)+'.'+String(dayAfterTomorrow).substring(6,8)+' )'
                 ],
                 datasets: [
                   {
@@ -212,7 +242,10 @@
                   }
                 ]
               },
-                options: {
+               options: {
+                    legend: {
+                        position: 'bottom'
+                    },
                     scales: {
                         y: {
                             ticks: {
