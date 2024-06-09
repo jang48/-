@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" th:href="@{/layout.css}">
+    <title>Weather2Wear</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+</head>
+<body>
+<div style="display: flex; width: 100%; height: 100%;">
+    <div style="display: flex; flex-direction: column; width: 35%;">
+        <img src="/img/background-icon.png" style="width: 100%; height: 30%;">
+        <div id="short-address" style="font-size: x-large; margin-left: 3%; font-weight: bold;"></div>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <div id="error-message" style="color: red; padding: 5%;"></div>
+            <div id="map" style="width: 198px; height: 191px; border-radius: 111px;margin-top:10px;display:none"></div>
+        </div>
+        <div style="margin-top : 3%; display: flex;justify-content: center;">
+            <input type="text" id="address" placeholder="주소" style="width: 70%; margin-left: 3%;">
+            <input type="button" onclick="execDaumPostcode()" value="주소 검색" style="margin-left: 1%;"><br>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <button class="w-btn w-btn-yellow" type="button" style="margin-top : 5%; margin-bottom : 5%;">
+                1시간 단위 날씨 조회 (3일 기준)
+            </button>
+            <button class="w-btn w-btn-yellow" type="button">
+                사용자 지정 날씨 조회 및 코디 추천
+            </button>
+        </div>
+    </div>
+    <th:block layout:fragment="content"></th:block>
+</div>
+</body>
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=5bd204a017173d719eef05bd1456fcbf&libraries=services"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=APIKEY&libraries=LIBRARY"></script>
+
+    <script>
+      var address = document.getElementById("short-address");
+      var errorMessage = document.getElementById("error-message");
+
+      var mapContainer = document.getElementById('map'), // 지도를 표시할 div
+        mapOption = {
+            center: new daum.maps.LatLng(37.537187, 127.005476), // 지도의 중심좌표
+            level: 5 // 지도의 확대 레벨
+        };
+
+      //지도를 미리 생성
+       var map = new daum.maps.Map(mapContainer, mapOption);
+      //주소-좌표 변환 객체를 생성
+      var geocoder = new daum.maps.services.Geocoder();
+      //마커를 미리 생성
+      var marker = new daum.maps.Marker({
+        position: new daum.maps.LatLng(37.537187, 127.005476),
+        map: map
+      });
+
+      function execDaumPostcode() {
+        new daum.Postcode({
+            oncomplete: function(data) {
+                var addr = data.address; // 최종 주소 변수
+
+                // 주소 정보를 해당 필드에 넣는다.
+                document.getElementById("address").value = addr;
+                // 주소로 상세 정보를 검색
+                geocoder.addressSearch(data.address, function(results, status) {
+                    // 정상적으로 검색이 완료됐으면
+                    if (status === daum.maps.services.Status.OK) {
+
+                        var result = results[0]; //첫번째 결과의 값을 활용
+                        console.log(result);
+                        var sido = result.road_address.region_1depth_name;
+                        var gugun = result.road_address.region_2depth_name;
+                        address.textContent = sido + ' ' + gugun;
+                        if(errorMessage.textContent != ""){
+                            errorMessage.textContent = "";
+                        }
+
+                        // 해당 주소에 대한 좌표를 받아서
+                        var coords = new daum.maps.LatLng(result.y, result.x);
+                        // 지도를 보여준다.
+                        mapContainer.style.display = "block";
+                        map.relayout();
+                        // 지도 중심을 변경한다.
+                        map.setCenter(coords);
+                        // 마커를 결과값으로 받은 위치로 옮긴다.
+                        marker.setPosition(coords)
+                    }
+                });
+            }
+        }).open();
+      }
+
+
+      navigator.geolocation.getCurrentPosition(showYourLocation, showErrorMsg);
+
+      function showYourLocation(position) {  // 성공했을때 실행
+        var userLat = position.coords.latitude;
+        var userLng = position.coords.longitude;
+
+        var coords = new daum.maps.LatLng(userLat, userLng);
+        var geocoder = new daum.maps.services.Geocoder(); // Geocoder 객체 생성
+
+        // 좌표를 주소로 변환
+        geocoder.coord2RegionCode(userLng, userLat, function(result, status) {
+            if (status === daum.maps.services.Status.OK) {
+                if (result[0]) {
+                    var sido = result[0].region_1depth_name;
+                    var gugun = result[0].region_2depth_name;
+                    address.textContent = sido + ' ' + gugun;
+                }
+            }
+        });
+
+        // 지도를 보여준다.
+        mapContainer.style.display = "block";
+        map.relayout();
+        // 지도 중심을 변경한다.
+        map.setCenter(coords);
+        // 마커를 결과값으로 받은 위치로 옮긴다.
+        marker.setPosition(coords);
+      }
+
+      function showErrorMsg(error) { // 실패했을때 실행
+          switch(error.code) {
+              case error.PERMISSION_DENIED:
+              console.log("Geolocation API의 사용 요청을 거부");
+              errorMessage.textContent ="위치 액세스 허용해주세요.";
+              break;
+
+              case error.POSITION_UNAVAILABLE:
+              console.log("가져온 위치 정보를 사용할 수 없음");
+              errorMessage.textContent ="위치를 사용할 수 없습니다. 주소 검색해주세요.";
+              break;
+
+              case error.TIMEOUT:
+              console.log("허용 시간을 초과");
+              errorMessage.textContent ="위치를 사용할 수 없습니다. 주소 검색해주세요.";
+              break;
+
+              case error.UNKNOWN_ERROR:
+              console.log("알 수 없는 오류가 발생");
+              errorMessage.textContent ="위치를 사용할 수 없습니다. 주소 검색해주세요.";
+              break;
+          }
+      }
+    </script>
+</html>

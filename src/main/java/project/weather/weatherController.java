@@ -25,7 +25,7 @@ public class weatherController {
 
     @GetMapping("/")
     public String test(Model model) {
-        return "main";
+        return "layout";
     }
 
 //    @GetMapping("/weatherData")

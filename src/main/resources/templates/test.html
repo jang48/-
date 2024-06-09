@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <link rel="stylesheet" th:href="@{/main.css}">
-    <title>OOTD</title>
+    <title>Weather2Wear</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
     <script type="text/javascript"
             src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APP_KEY&libraries=services,clusterer,drawing"></script>
@@ -24,7 +24,6 @@
                         span.textContent = "내일";
                     } else if (fcstDate == dayAfterTomorrowStr) {
                         span.textContent = "모레";
-                console.log("4");
                     }
                 } else {
                     span.textContent = fcstTime.substring(0, 2) + "시";
