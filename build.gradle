@@ -22,20 +22,31 @@ repositories {
 }
 
 dependencies {
-	//타임리프
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	//공통 템플릿
-	implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
 	implementation 'mysql:mysql-connector-java:8.0.33'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.commonmark:commonmark:0.21.0'
+	implementation 'org.json:json:20231013'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	//공통 템플릿
+	implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
+
+	//HTTP 요청을 Webflux 라이브러리의 Webclient로 구현했다.
+	//만약 카카오 로그인 페이지를 구현하지 않을 예정이라면, thymeleaf는 추가하지 않아도 된다.
+	//Webflux
+//	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+//	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'             // Thymeleaf Template
+//	implementation 'org.springframework.boot:spring-boot-starter-webflux:2.7.13'
+//	implementation 'org.springframework.boot:spring-boot-starter-security'
 }
 
 tasks.named('bootBuildImage') {
