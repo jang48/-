@@ -176,6 +176,9 @@ public class ApiExplorer {
                     case "TMX":  // 일 최고기온(℃)
                         weatherdto.setTMX(fcstValue);
                         break;
+                    case "WSD":  // 풍속 m/s
+                        weatherdto.setWSD(fcstValue);
+                        break;
                     default:
                         break;
                 }

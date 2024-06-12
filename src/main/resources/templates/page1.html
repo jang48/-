@@ -15,6 +15,8 @@
             src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APP_KEY&libraries=services,clusterer,drawing"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            var weatherButton = document.getElementById("weather-button");
+            weatherButton.classList.add("clicked");
             const todayStr = [[${todayStr}]];
             const tomorrowStr = [[${tomorrowStr}]];
             const dayAfterTomorrowStr = [[${dayAfterTomorrowStr}]];
@@ -43,7 +45,7 @@
 </head>
 <body>
 
-<div layout:fragment="content" style="display: flex; flex-direction: column; justify-content: center;">
+<div layout:fragment="content" style="display: flex; flex-direction: column; justify-content: center; width : 65%;">
 <!--    <div style="width : 100%;">-->
 <!--        <button onclick="ExecDaumPostcode()">-->
 <!--            <img src="/img/search.png" style="width: 24px; cursor: pointer;">-->
@@ -62,7 +64,10 @@
                     </div>
                 </div>
                 <div>
-                    <span th:text="'습도 ' + ${nowWeather.REH} + '%'"></span>
+                    <img src="/img/humidity.png" style="width : 50px;">
+                    <span th:text="${nowWeather.REH}"></span>
+                    <img src="/img/wind.png" style="width : 50px;">
+                    <span th:text="${nowWeather.WSD}"></span>
                 </div>
             </div>
 <!--            <div id="map" style="width: 17%; height: 151px;"></div>-->
@@ -72,7 +77,7 @@
                 </div>
             </div>
         </div>
-        <div style="width: 850px; margin-top : 50px;">
+        <div style="margin-top : 50px;">
             <div class="swiper-container">
                 <div class="swiper mySwiper">
                     <div class="swiper-wrapper">

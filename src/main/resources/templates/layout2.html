@@ -1,37 +1,105 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" th:href="@{/layout.css}">
+    <meta charset="UTF-8">
     <title>Weather2Wear</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .main-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            position: fixed;
+        }
+        .image-container {
+            position: relative;
+            flex: 1;
+            width: 70%;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+        .map {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .overlay-button {
+            position: absolute;
+            top: 3%;
+            left: 10%;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 33px;
+            color: black;
+            z-index: 10;
+        }
+        .sidebar {
+            background: white;
+            width: 40%;
+            height: 100%;
+        }
+        .img {
+            width: 60%;
+            height: 100%;
+            overflow: hidden; /* 이미지가 부모 요소를 넘어가지 않도록 설정 */
+        }
+        .img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 이미지가 부모 요소에 꽉 차게 설정 */
+        }
+        .overlay-menu {
+            position: fixed;
+            top: 3%;
+            left: 25%;
+            font-weight: bold;
+            z-index: 20;
+            font-size: 20px;
+            display: flex;
+            gap: 20px;
+            z-index: 10;
+            position: fixed;
+        }
+        .overlay-menu span{
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 5px;
+            padding: 10px;
+        }
+    </style>
 </head>
 <body>
-<div style="display: flex; width: 100%; height: 100%;">
-    <div style="display: flex; flex-direction: column; width: 35%;">
-        <img src="/img/background-icon.png" style="width: 100%; height: 30%; cursor : pointer;" onclick="redirectToHome()">
-        <div id="short-address" style="font-size: x-large; margin-left: 3%; font-weight: bold;"></div>
-        <div style="display: flex; flex-direction: column; align-items: center;">
-            <div id="error-message" style="color: red; padding: 5%;"></div>
-            <div id="map" style="width: 198px; height: 191px; border-radius: 111px;margin-top:10px;display:none"></div>
+<div class="main-container">
+    <div class="image-container">
+        <span class="overlay-button" onclick="redirectToHome()">Weather2Wear</span>
+        <div class="map">
+            <div id="short-address" style="font-size: x-large; margin-left: 3%; font-weight: bold;"></div>
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <div id="error-message" style="color: red; padding: 5%;"></div>
+                <div id="map"
+                     style="width: 198px; height: 191px; border-radius: 111px;margin-top:10px;display:none"></div>
+            </div>
+            <div style="margin-top : 3%; display: flex;justify-content: center;">
+                <input type="text" id="address" placeholder="주소" style="width: 70%; margin-left: 3%;">
+                <input type="button" onclick="execDaumPostcode()" value="주소 검색" style="margin-left: 1%;"><br>
+            </div>
         </div>
-        <div style="margin-top : 3%; display: flex;justify-content: center;">
-            <input type="text" id="address" placeholder="주소" style="width: 70%; margin-left: 3%;">
-            <input type="button" onclick="execDaumPostcode()" value="주소 검색" style="margin-left: 1%;"><br>
-        </div>
-
-        <div style="display: flex; flex-direction: column; align-items: center;">
-            <button id="weather-button" class="w-btn w-btn-yellow" type="button" style="margin-top : 5%; margin-bottom : 5%;" onclick="sendCoordinates()">
-                1시간 단위 날씨 조회 (3일 기준)
-            </button>
-            <button class="w-btn w-btn-yellow" type="button">
-                사용자 지정 날씨 조회 및 코디 추천
-            </button>
-        </div>
+    </div>
+    <div class="overlay-menu">
+        <span>About</span>
+        <span style="cursor : pointer;" onclick="sendCoordinates()">1시간 단위 날씨 조회</span>
+        <span>코디 추천</span>
+    </div>
+    <div class="img">
+        <img src="/img/sky.jpg" alt="Sky Image">
     </div>
     <th:block layout:fragment="content"></th:block>
 </div>
-</body>
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=5bd204a017173d719eef05bd1456fcbf&libraries=services"></script>
 <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=APIKEY&libraries=LIBRARY"></script>
@@ -170,4 +238,5 @@
         window.location.href = "/";
     }
 </script>
+</body>
 </html>

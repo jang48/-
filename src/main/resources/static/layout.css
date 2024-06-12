@@ -81,3 +81,9 @@ button{
 .w-btn-outline:active {
     transform: scale(1.5);
 }
+
+.clicked {
+    background-color: #1480f5;
+    color : white;
+    font-weight : bold;
+}

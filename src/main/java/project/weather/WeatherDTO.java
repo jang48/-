@@ -19,6 +19,5 @@ public class WeatherDTO {
     private String SNO;   // 적설량(cm)
     private String TMN;   // 일 최저기온(℃)
     private String TMX;   // 일 최고기온(℃)
-
-
+    private String WSD;   // 풍속 m/s
 }
