@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout}">
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" th:href="@{/page2.css}">
+    <title>Weather2Wear</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+    <script type="text/javascript"
+            src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APP_KEY&libraries=services,clusterer,drawing"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var weatherButton = document.getElementById("weather-button");
+            var weatherButton2 = document.getElementById("weather-button2");
+            const todayStr = [[${todayStr}]];
+            const tomorrowStr = [[${tomorrowStr}]];
+            const dayAfterTomorrowStr = [[${dayAfterTomorrowStr}]];
+
+            if (weatherButton.classList.contains("clicked")) {
+                weatherButton.classList.remove("clicked");
+            }
+
+            weatherButton2.classList.add("clicked");
+
+            document.querySelectorAll(".fcstTimeSpan").forEach(function(span) {
+                const fcstDate = span.getAttribute("data-fcstDate");
+                const fcstTime = span.getAttribute("data-fcstTime");
+
+                if (fcstTime === "0000") {
+                    if (fcstDate == todayStr) {
+                        span.textContent = "오늘";
+                        span.classList.add("bold");
+                    } else if (fcstDate == tomorrowStr) {
+                        span.textContent = "내일";
+                        span.classList.add("bold");
+                    } else if (fcstDate == dayAfterTomorrowStr) {
+                        span.textContent = "모레";
+                        span.classList.add("bold");
+                    }
+                } else {
+                    span.textContent = fcstTime.substring(0, 2) + "시";
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+<div layout:fragment="content" style="display: flex; justify-content: center; margin-left : 8%; margin-top : 8%;">
+    <div style="display: flex; flex-direction: column; align-items: center;">
+        <span th:text="${address}" style="font-size : x-large;"></span>
+        <div style="display: flex;">
+            <div style="display: flex; flex-direction: column; padding : 15px;">
+                <div style="display: flex;">
+                    <img src="/img/low-temperature.png" style="width : 50px;">
+                    <div style="display: flex; flex-direction: column; align-items: center;">
+                        <span th:text="${minTmp+ '°'}" style="font-size: xx-large;"></span>
+                        <div  style="display: flex;">
+                            <span th:text="${minDay}"></span>
+                            <span th:text="${minTime+ '시'}" style="margin-left : 5px;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; flex-direction: column; padding : 15px;">
+                <span>평균 온도</span>
+                <span th:text="${avgTmp+ '°'}" style="font-size: xxx-large;"></span>
+            </div>
+            <div style="display: flex; flex-direction: column; padding : 15px;">
+                <div style="display: flex;">
+                    <img src="/img/high-temperature.png" style="width : 50px;">
+                    <div style="display: flex; flex-direction: column; align-items: center;">
+                        <span th:text="${maxTmp+ '°'}" style="font-size: xx-large;"></span>
+                        <div  style="display: flex;">
+                            <span th:text="${maxDay}"></span>
+                            <span th:text="${maxTime+ '시'}" style="margin-left : 5px;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="width: 100%; height: 345px; overflow-y: auto; display: flex; flex-direction: column; align-items: center;">
+            <div style="display: flex;" th:each="dto : ${coordiWeatherList}">
+                <div style="display : flex; justify-content: center;">
+                    <div th:each="dtoItem : ${dto}" style="display: flex; justify-content: center;">
+                        <div th:if="${dtoItem.fcstDate + dtoItem.fcstTime  >= todayStr + currentTime}"
+                             style="display: flex; justify-content: center;">
+                            <div style="display: flex; flex-direction: column; align-items: center; margin : 5px;">
+                            <span class="fcstTimeSpan"
+                                  th:attr="data-fcstDate=${dtoItem.fcstDate},data-fcstTime=${dtoItem.fcstTime}"
+                                  style="font-weight : bold;"></span>
+                                <div style="display : flex; flex-direction: column; margin-top : 10px; margin-bottom : 10px;">
+                                    <div style="display : flex; align-items: center; justify-content: center;">
+                                        <img src="/img/clear-day.svg" th:if="${dtoItem.SKY} == 1"
+                                             style="width : 50px;">
+                                        <img src="/img/partly-cloudy-day.svg" th:if="${dtoItem.SKY} == 3"
+                                             style="width : 50px;">
+                                        <img src="/img/partly-cloudy-day.svg" th:if="${dtoItem.SKY} == 4"
+                                             style="width : 50px;">
+
+                                        <span th:text="${dtoItem.TMP + '°'}"></span>
+                                    </div>
+                                    <!--                                        <span4 th:text="${#strings.substring(dtoItem.fcstTime, 0, 2)}+시"-->
+                                    <!--
+                                                                           style="font-size : small;"></span>-->
+                                    <div style="display: flex;">
+                                        <div style="display: flex; align-items: center;">
+                                            <img src="/img/rain4.png" style="width : 17px; height : 17px;">
+                                            <span th:text="${dtoItem.POP +'%'}"
+                                                  style="font-size : 10px; margin-left : 2px;"></span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; margin-left : 3px;">
+                                            <img src="/img/wind2.png" style="width : 17px; height : 17px;">
+                                            <span th:text="${dtoItem.WSD +'m/s'}"
+                                                  style="font-size : 10px; margin-left : 2px;"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=5bd204a017173d719eef05bd1456fcbf&libraries=services"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=APIKEY&libraries=LIBRARY"></script>
+    <!--DatePicker  -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" media="screen"
+          href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js"></script>
+
+    <script>
+
+    </script>
+</div>
+</body>
+</html>

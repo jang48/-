@@ -17,8 +17,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Controller
@@ -200,6 +199,224 @@ public class ApiExplorer {
             }
         }
         WeatherDTO newDto = new WeatherDTO();
+        newDto.setFcstDate(fcstDate);
+        newDto.setFcstTime(fcstTime);
+        return newDto;
+    }
+
+    public Map<String, Object> getCoordiWeatheanrInfo(double nx, double ny, String str_date, String end_date) throws IOException, JSONException {
+
+        LocalDateTime yesterday = now.minusDays(1);
+        String nxString = String.format("%.0f", nx);
+        String nyString = String.format("%.0f", ny);
+        String baseTime = null;
+        int hour = now.getHour();
+        if(hour >= 23 || hour < 2) {
+            if(hour != 23)
+            {baseDate = yesterday.format(DateTimeFormatter.ofPattern("yyyyMMdd"));}
+            baseTime = "2300";
+        } else if(hour >= 2 || hour < 5) {
+            baseTime = "0200";
+        } else if(hour >= 5 || hour < 8) {
+            baseTime = "0500";
+        } else if(hour >= 8 || hour < 11) {
+            baseTime = "0800";
+        } else if(hour >= 11 || hour < 14) {
+            baseTime = "1100";
+        } else if (hour >= 14 || hour < 17) {
+            baseTime = "1400";
+        } else if(hour >= 17 || hour < 20) {
+            baseTime = "1700";
+        } else if(hour >= 20 || hour < 23) {
+            baseTime = "2000";
+        }
+        String type = "JSON";
+        //         홈페이지에서 받은 키
+        String serviceKey = "WCgfH5NwN2TOyTIE5t8tOUXP9R8hezYg7JLzXZLY%2FIGSW5L0i1bUffHA4MT3AtUcBQ5AFXRMLNXk5phxUw1YTA%3D%3D";
+
+        //		참고문서에 있는 url주소
+        String apiUrl = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst";
+
+        StringBuilder urlBuilder = new StringBuilder(apiUrl);
+        urlBuilder.append("?" + URLEncoder.encode("ServiceKey", "UTF-8") + "=" + serviceKey);
+        urlBuilder.append("&" + URLEncoder.encode("pageNo", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8")); /*페이지번호*/
+        urlBuilder.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("1000", "UTF-8")); /*한 페이지 결과 수*/
+        urlBuilder.append("&" + URLEncoder.encode("dataType", "UTF-8") + "=" + URLEncoder.encode(type, "UTF-8"));
+        urlBuilder.append("&" + URLEncoder.encode("base_date", "UTF-8") + "=" + URLEncoder.encode(baseDate, "UTF-8")); /* 조회하고싶은 날짜*/
+        urlBuilder.append("&" + URLEncoder.encode("base_time", "UTF-8") + "=" + URLEncoder.encode(baseTime, "UTF-8")); /* 조회하고싶은 시간 AM 02시부터 3시간 단위 */
+        urlBuilder.append("&" + URLEncoder.encode("nx", "UTF-8") + "=" + URLEncoder.encode(nxString, "UTF-8")); //경도
+        urlBuilder.append("&" + URLEncoder.encode("ny", "UTF-8") + "=" + URLEncoder.encode(nyString, "UTF-8")); //위도
+
+        /*
+         * GET방식으로 전송해서 파라미터 받아오기
+         */
+        URL url = new URL(urlBuilder.toString());
+
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Content-type", "application/json");
+
+        BufferedReader rd;
+        if (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
+            rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        } else {
+            rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+        }
+
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = rd.readLine()) != null) {
+            sb.append(line);
+        }
+
+        rd.close();
+        conn.disconnect();
+        String result2 = sb.toString();
+        Map<String, Object> coordiDTO= parseJSON2(result2,str_date,end_date);
+        return coordiDTO;
+    }
+
+    private Map<String, Object> parseJSON2(String jsonString,String str_date, String end_date) throws JSONException {
+        List<CoordiWeatherDTO> coordiList = null;
+        // 최고 기온과 최저 기온을 추적하기 위한 변수
+        int maxTmp = Integer.MIN_VALUE;
+        String maxTmpDateTime = "";
+        int minTmp = Integer.MAX_VALUE;
+        String minTmpDateTime = "";
+
+        String strDatePart = str_date.substring(0, 10); // "2024-10-15"
+        String strTimePart = str_date.substring(11, 16); // "15:00"
+        String endDatePart = end_date.substring(0, 10); // "2024-10-15"
+        String endTimePart = end_date.substring(11, 16); // "15:00"
+
+        String strFormattedDate = strDatePart.replace("-", ""); // "20241015"
+        String strFormattedTime = strTimePart.replace(":", ""); // "1500"
+        String endFormattedDate = endDatePart.replace("-", ""); // "20241015"
+        String endFormattedTime = endTimePart.replace(":", ""); // "1500"
+        int totalTmp = 0;
+
+
+        try {
+            if (jsonString == null || jsonString.isEmpty()) {
+                System.out.println("JSON 문자열이 null이거나 비어 있습니다.");
+            }
+            JSONObject jsonObj = new JSONObject(jsonString);
+            JSONObject response = jsonObj.getJSONObject("response");
+            JSONObject body = response.getJSONObject("body");
+            JSONObject items = body.getJSONObject("items");
+            JSONArray itemArray = items.getJSONArray("item");
+            String fcstValue;
+            coordiList = new ArrayList<>();
+            // item 배열에서 각 항목을 출력 (예시)
+            for (int i = 0; i < itemArray.length(); i++) {
+                JSONObject item = itemArray.getJSONObject(i);
+                if(!Objects.equals(item.getString("fcstDate"), strFormattedDate)){
+                    if( Integer.parseInt(item.getString("fcstDate")) > Integer.parseInt(endFormattedDate) || Integer.parseInt(item.getString("fcstDate")) < Integer.parseInt(strFormattedDate)){
+                        continue;
+                    }
+                }
+                if(Objects.equals(item.getString("fcstDate"), strFormattedDate) && Integer.parseInt(strFormattedTime) > Integer.parseInt(item.getString("fcstTime"))){
+                    continue;
+                }
+
+                if(Objects.equals(item.getString("fcstDate"), endFormattedDate) && Integer.parseInt(endFormattedTime) < Integer.parseInt(item.getString("fcstTime"))){
+                    continue;
+                }
+
+                String fcstDate = item.getString("fcstDate");
+                String fcstTime = item.getString("fcstTime");
+                String category = item.getString("category");
+                fcstValue = item.getString("fcstValue");
+
+                // fcstDate와 fcstTime을 LocalDateTime 객체로 변환
+                LocalDateTime forecastDateTime = LocalDateTime.parse(fcstDate + fcstTime, DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
+                CoordiWeatherDTO coordiWeatherdto = null;
+
+                // fcstDate가 현재 날짜와 같고 fcstTime이 현재 시간보다 이전이지만 1시간 차이 이내이면 포함
+                if (forecastDateTime.isBefore(now) && forecastDateTime.plusHours(1).isBefore(now)) {
+                    if (category.equals("TMN")) {
+                        coordiWeatherdto = findOrCreateCoordiWeatherDTO(coordiList, fcstDate, fcstTime);
+                        coordiWeatherdto.setTMN(fcstValue);
+                        coordiList.add(coordiWeatherdto);
+                    } else if (category.equals("TMX")) {
+                        coordiWeatherdto = findOrCreateCoordiWeatherDTO(coordiList, fcstDate, fcstTime);
+                        coordiWeatherdto.setTMX(fcstValue);
+                        coordiList.add(coordiWeatherdto);
+                    }
+                    continue;
+                }
+
+                coordiWeatherdto = findOrCreateCoordiWeatherDTO(coordiList, fcstDate, fcstTime);
+
+                switch (category) {
+                    case "PTY":  // 강수형태
+                        coordiWeatherdto.setPTY(fcstValue);
+                        break;
+                    case "REH":  // 습도
+                        coordiWeatherdto.setREH(fcstValue);
+                        break;
+                    case "RN1":  // 1시간 강수량 범주(1mm)
+                        coordiWeatherdto.setRN1(fcstValue);
+                        break;
+                    case "TMP":  // 1시간 기온
+                        coordiWeatherdto.setTMP(fcstValue);
+                        totalTmp += Integer.parseInt(fcstValue);
+                        // 최고 기온과 최저 기온을 업데이트
+                        int currentTmp = Integer.parseInt(fcstValue);
+                        if (currentTmp > maxTmp) {
+                            maxTmp = currentTmp;
+                            maxTmpDateTime = fcstDate + "/" + fcstTime;
+                        }
+                        if (currentTmp < minTmp) {
+                            minTmp = currentTmp;
+                            minTmpDateTime = fcstDate + "/" + fcstTime;
+                        }
+                        break;
+                    case "POP":  // 강수확률
+                        coordiWeatherdto.setPOP(fcstValue);
+                        break;
+                    case "SKY":  // 하늘상태
+                        coordiWeatherdto.setSKY(fcstValue);
+                        break;
+                    case "SNO":  // 적설량 (cm)
+                        coordiWeatherdto.setSNO(fcstValue);
+                        break;
+                    case "TMN":  // 일 최저기온(℃)
+                        coordiWeatherdto.setTMN(fcstValue);
+                        break;
+                    case "TMX":  // 일 최고기온(℃)
+                        coordiWeatherdto.setTMX(fcstValue);
+                        break;
+                    case "WSD":  // 풍속 m/s
+                        coordiWeatherdto.setWSD(fcstValue);
+                        break;
+                    default:
+                        break;
+                }
+                // DTO가 리스트에 없으면 새로 추가
+                if (!coordiList.contains(coordiWeatherdto)) {
+                    coordiList.add(coordiWeatherdto);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Map<String, Object> resultMap =  new HashMap<>();
+        resultMap.put("coordiList", coordiList);
+        resultMap.put("avgTmp",totalTmp);
+        resultMap.put("maxTmp",maxTmp+"/"+maxTmpDateTime);
+        resultMap.put("minTmp",minTmp+"/"+minTmpDateTime);
+        return resultMap;
+    }
+
+
+    private static CoordiWeatherDTO findOrCreateCoordiWeatherDTO(List<CoordiWeatherDTO> weatherList, String fcstDate, String fcstTime) {
+        for (CoordiWeatherDTO dto : weatherList) {
+            if (dto.getFcstDate().equals(fcstDate) && dto.getFcstTime().equals(fcstTime)) {
+                return dto;
+            }
+        }
+        CoordiWeatherDTO newDto = new CoordiWeatherDTO();
         newDto.setFcstDate(fcstDate);
         newDto.setFcstTime(fcstTime);
         return newDto;

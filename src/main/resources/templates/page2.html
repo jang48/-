@@ -1,121 +1,176 @@
 <!DOCTYPE html>
-<html>
+<html layout:decorate="~{layout}">
 <head>
     <meta charset="utf-8">
-    <link rel="stylesheet" th:href="@{/test22.css}">
+    <link rel="stylesheet" th:href="@{/page2.css}">
     <title>Weather2Wear</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
     <script type="text/javascript"
             src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APP_KEY&libraries=services,clusterer,drawing"></script>
 </head>
 <body>
-<div>
-    <input type="text" id="sample5_address" placeholder="주소">
-    <input type="button" onclick="sample5_execDaumPostcode()" value="주소 검색"><br>
-    <div id="map" style="width:300px;height:300px;margin-top:10px;display:none"></div>
-
-    <button onclick="reloadMap()">
-        <img src="/img/gps.png" style="width: 24px; cursor: pointer;">
-    </button>
-    <h1>datetimepicker</h1>
-    시작일시 : <input type='text' class='datetimepicker' name='start_dt'  style='width:140px;'>
-    종료일시 : <input type='text' class='datetimepicker' name='end_dt'   style='width:140px; padding-left:10px;'>
-
+<div layout:fragment="content" style="display: flex; flex-direction: column; justify-content: center; width : 65%;">
+    <div style="display: flex; flex-direction: column; align-items: center;">
+        <a title="Button border orange" class="time button btnBorder btnOrange">
+            사용자 지정 날씨 조회 및 코디 추천
+        </a>
+        <a style="boorder-width: 5px 10px 2px 15px; border-color : gray; border-style : dashed; padding : 10px;">
+            원하는 지역의 주소를 검색한 후 출발 일시 및 도착일시를 선택하여 조회해주세요.
+        </a>
+    </div>
+    <div style="display : flex; justify-content: space-around;">
+        <div style="display: flex; flex-direction: column;">
+            <div style="display : flex; margin-top : 10px;">
+                <input type="text" id="Coordinate_address" placeholder="주소" style="width : 70%;"><br>
+                <input type="button" onclick="execCoordinatePostcode()" value="주소 검색"
+                       style="width : 27%; margin-left : 3%;">
+            </div>
+            <div style="display : flex; margin-top : 20px; margin-bottom : 20px;">
+                <div style="display : flex;">
+                    <a onclick="return focusInput(1);">
+                        <span>출발 일시 : </span>
+                        <input type='text' name='start_dt' id='start_dt' class="datetimepicker" style='width:140px;'>
+                    </a>
+                </div>
+                <div style="display : flex; margin-left : 10px;">
+                    <a onclick="return focusInput(2);">
+                        <span>도착 일시 : </span>
+                        <input type='text' name='end_dt' id='end_dt' class="datetimepicker" style='width:140px;'>
+                    </a>
+                </div>
+                <div style="margin-left : 10px;">
+                    <input type="button" onclick="searchLocationWeather()" value="조회하기">
+                </div>
+            </div>
+            <div id="map2" style="height:300px;"></div>
+        </div>
+    </div>
 
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=5bd204a017173d719eef05bd1456fcbf&libraries=services"></script>
     <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=APIKEY&libraries=LIBRARY"></script>
     <!--DatePicker  -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <link rel="stylesheet" type="text/css" media="screen" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css">
+    <link rel="stylesheet" type="text/css" media="screen"
+          href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js"></script>
 
     <script>
-        $(function() {
-            var minDate = new Date();
-            var maxDate = new Date();
-            maxDate.setDate(maxDate.getDate() + 2); // 현재 날짜로부터 2일 이내
 
-            $(".datetimepicker").datetimepicker({
-                format: "Y-m-d H:i",
-                minDate: minDate,
-                maxDate: maxDate
-            });
-        });
+        var latitude = null;
+        var longitude = null;
+        var address = null;
 
+        function searchLocationWeather(){
+           var str_dt = document.getElementById("start_dt").value;
+           var end_dt = document.getElementById("end_dt").value;
+           var startDate = new Date(str_dt);
+           var endDate = new Date(end_dt);
+           var now = new Date();
 
-        var mapContainer = document.getElementById('map'), // 지도를 표시할 div
-          mapOption = {
-              center: new daum.maps.LatLng(37.537187, 127.005476), // 지도의 중심좌표
-              level: 5 // 지도의 확대 레벨
-          };
+            if(startDate.getTime() < now.getTime()) {
+                alert("출발 일시는 현재 시간보다 늦어야 합니다.");
+                return false;
+            }
 
-        //지도를 미리 생성
-         var map = new daum.maps.Map(mapContainer, mapOption);
-        //주소-좌표 변환 객체를 생성
-        var geocoder = new daum.maps.services.Geocoder();
-        //마커를 미리 생성
-        var marker = new daum.maps.Marker({
-          position: new daum.maps.LatLng(37.537187, 127.005476),
-          map: map
-        });
+           if(startDate.getTime() > endDate.getTime()) {
+                alert("도착 일시는 출발 일시보다 늦어야 합니다.");
+                return false;
+           }
 
-        function sample5_execDaumPostcode() {
-          new daum.Postcode({
-              oncomplete: function(data) {
-                  var addr = data.address; // 최종 주소 변수
+           if(str_dt == ""){
+                alert("출발 일시를 선택해주세요.");
+                return false;
+           } else if (end_dt == ""){
+                alert("도착 일시를 선택해주세요.");
+                return false;
+           }
 
-                  // 주소 정보를 해당 필드에 넣는다.
-                  document.getElementById("sample5_address").value = addr;
-                  // 주소로 상세 정보를 검색
-                  geocoder.addressSearch(data.address, function(results, status) {
-                      // 정상적으로 검색이 완료됐으면
-                      if (status === daum.maps.services.Status.OK) {
+           window.location.href = '/coordinate/detail?nx=' + latitude + '&ny=' + longitude + '&address=' + address
+                                    + '&str_date=' + str_dt + '&end_date=' + end_dt;
 
-                          var result = results[0]; //첫번째 결과의 값을 활용
-                          var roadAddress = results[0].road_address;
-                          var sido = roadAddress.region_1depth_name;
-                          var gugun = roadAddress.region_2depth_name;
-                          var address = sido+' '+gugun;
-
-                          // 해당 주소에 대한 좌표를 받아서
-                          var coords = new daum.maps.LatLng(result.y, result.x);
-                          // 지도를 보여준다.
-                          mapContainer.style.display = "block";
-                          map.relayout();
-                          // 지도 중심을 변경한다.
-                          map.setCenter(coords);
-                          // 마커를 결과값으로 받은 위치로 옮긴다.
-                          marker.setPosition(coords)
-                      }
-                  });
-              }
-          }).open();
         }
 
-        function error() {
-          alert('위치를 가져올 수 없습니다.');
-        }
+        function focusInput(tag) {
+            if(tag == 1){
+                document.querySelector('input.datetimepicker[name="start_dt"]').focus();
+            } else {
+                document.querySelector('input.datetimepicker[name="end_dt"]').focus();
+            }
+           return false;
+       }
 
-        function gotest(){
-          if (confirm("입력한 주소가 맞습니까?")) {
-    <!--                            sendCoordinates(result.y, result.x, addr);-->\
-              sendCoordinates(result.y, result.x, address);
-          }
-        }
+       document.addEventListener("DOMContentLoaded", function() {
+           var minDate = new Date();
+           var maxDate = new Date();
+           maxDate.setDate(maxDate.getDate() + 2); // 현재 날짜로부터 2일 이내
 
-        function reloadMap() {
-          if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition(success, error);
-          } else {
-              alert('GPS를 지원하지 않습니다');
-          }
-        }
+           $(".datetimepicker").datetimepicker({
+               format: "Y-m-d H:i",
+               minDate: minDate,
+               maxDate: maxDate
+           });
+           var weatherButton = document.getElementById("weather-button");
+           var weatherButton2 = document.getElementById("weather-button2");
+           if (weatherButton.classList.contains("clicked")) {
+               weatherButton.classList.remove("clicked");
+           }
+           weatherButton2.classList.add("clicked");
+       });
 
-        function sendCoordinates(latitude, longitude, address) {
-         window.location.href = '/weatherData?nx=' + latitude + '&ny=' + longitude + '&address=' + address;
-        }
 
+
+       var mapContainer2 = document.getElementById('map2'),
+       mapOption2 = {
+           center: new daum.maps.LatLng(33.450701, 126.570667),
+           level: 5
+       };
+       var map2 = new daum.maps.Map(mapContainer2, mapOption2);
+
+       //주소-좌표 변환 객체를 생성
+       var geocoder = new kakao.maps.services.Geocoder();
+       //마커를 미리 생성
+       var marker2 = new kakao.maps.Marker({
+           position: new kakao.maps.LatLng(37.537187, 127.005476),
+           map: map2
+       });
+
+       function execCoordinatePostcode() {
+           new daum.Postcode({
+               oncomplete: function(data) {
+                   var addr = data.address; // 최종 주소 변수
+
+                   // 주소 정보를 해당 필드에 넣는다.
+                   document.getElementById("Coordinate_address").value = addr;
+                   // 주소로 상세 정보를 검색
+                   geocoder.addressSearch(data.address, function(results, status) {
+                       // 정상적으로 검색이 완료됐으면
+                       if (status === kakao.maps.services.Status.OK) {
+
+                           var result = results[0]; //첫번째 결과의 값을 활용
+                           var roadAddress = result.road_address;
+                           var sido = roadAddress ? roadAddress.region_1depth_name : "";
+                           var gugun = roadAddress ? roadAddress.region_2depth_name : "";
+                           address = sido + ' ' + gugun;
+
+                           latitude = result.y;
+                           longitude = result.x;
+
+                           // 해당 주소에 대한 좌표를 받아서
+                           var coords = new kakao.maps.LatLng(result.y, result.x);
+                           // 지도를 보여준다.
+<!--                            mapContainer2.style.display = "block";-->
+                           map2.relayout();
+                           // 지도 중심을 변경한다.
+                           map2.setCenter(coords);
+                           // 마커를 결과값으로 받은 위치로 옮긴다.
+                           marker2.setPosition(coords);
+                       }
+                   });
+               }
+           }).open();
+       }
     </script>
 </div>
-
+</body>
+</html>

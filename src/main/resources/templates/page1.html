@@ -16,10 +16,16 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             var weatherButton = document.getElementById("weather-button");
-            weatherButton.classList.add("clicked");
+            var weatherButton2 = document.getElementById("weather-button2");
             const todayStr = [[${todayStr}]];
             const tomorrowStr = [[${tomorrowStr}]];
             const dayAfterTomorrowStr = [[${dayAfterTomorrowStr}]];
+
+            if (weatherButton2.classList.contains("clicked")) {
+                weatherButton2.classList.remove("clicked");
+            }
+
+            weatherButton.classList.add("clicked");
 
             document.querySelectorAll(".fcstTimeSpan").forEach(function(span) {
                 const fcstDate = span.getAttribute("data-fcstDate");
@@ -44,14 +50,17 @@
     </script>
 </head>
 <body>
-
 <div layout:fragment="content" style="display: flex; flex-direction: column; justify-content: center; width : 65%;">
-<!--    <div style="width : 100%;">-->
-<!--        <button onclick="ExecDaumPostcode()">-->
-<!--            <img src="/img/search.png" style="width: 24px; cursor: pointer;">-->
-<!--        </button>-->
-<!--    </div>-->
+    <!--    <div style="width : 100%;">-->
+    <!--        <button onclick="ExecDaumPostcode()">-->
+    <!--            <img src="/img/search.png" style="width: 24px; cursor: pointer;">-->
+    <!--        </button>-->
+    <!--    </div>-->
     <div>
+        <div style="display: flex; align-items: center;">
+            <span th:text="${address}" style="font-size: xx-large; font-weight: bold; margin-left: 49px;"></span>
+            <span th:text="${'(' + todayStr + ') 기준'}" style="margin-left : 10px;"></span>
+        </div>
         <div style="display: flex; align-items: center; justify-content: space-evenly; height: 172px; margin-top : 5px;">
             <div style="display: flex; flex-direction: column; align-items: center">
                 <div style="display: flex; flex-direction: column; align-items: flex-end;">
@@ -63,14 +72,18 @@
                               style="font-size : xxx-large; margin-left: -38px;"></span>
                     </div>
                 </div>
-                <div>
-                    <img src="/img/humidity.png" style="width : 50px;">
-                    <span th:text="${nowWeather.REH}"></span>
-                    <img src="/img/wind.png" style="width : 50px;">
-                    <span th:text="${nowWeather.WSD}"></span>
+                <div style="display: flex;">
+                    <div style="display: flex; align-items: center; margin-right : 20px;">
+                        <img src="/img/humidity.png" style="width : 30px; margin-right : 3px;">
+                        <span th:text="${nowWeather.REH}"></span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <img src="/img/wind.png" style="width : 30px; margin-right : 3px;">
+                        <span th:text="${nowWeather.WSD}"></span>
+                    </div>
                 </div>
             </div>
-<!--            <div id="map" style="width: 17%; height: 151px;"></div>-->
+            <!--            <div id="map" style="width: 17%; height: 151px;"></div>-->
             <div style="display : flex;">
                 <div style="width : 312px; height : 150px;">
                     <canvas id="myChart"></canvas>

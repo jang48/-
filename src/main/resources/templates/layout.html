@@ -21,10 +21,10 @@
         </div>
 
         <div style="display: flex; flex-direction: column; align-items: center;">
-            <button id="weather-button" class="w-btn w-btn-yellow" type="button" style="margin-top : 5%; margin-bottom : 5%;" onclick="sendCoordinates()">
+            <button id="weather-button" class="w-btn w-btn-yellow" type="button" style="margin-top : 5%; margin-bottom : 5%;" onclick="get1hourWeather()">
                 1시간 단위 날씨 조회 (3일 기준)
             </button>
-            <button class="w-btn w-btn-yellow" type="button">
+            <button id="weather-button2" class="w-btn w-btn-yellow" type="button" onclick="getCoordinates()">
                 사용자 지정 날씨 조회 및 코디 추천
             </button>
         </div>
@@ -157,13 +157,17 @@
         }
     }
 
-    function sendCoordinates(){
-        if(address == null){
-            alert('주소 입력 후 사용해주세요.');
+    function get1hourWeather(){
+        if (address == null) { // 주소가 입력되지 않았을 때의 조건을 추가합니다.
+            alert('주소를 입력한 후 사용해주세요.');
             return false;
         }
         window.location.href = '/weatherData?nx=' + latitude + '&ny=' + longitude + '&address=' + address_href;
 
+    }
+
+    function getCoordinates(){
+        window.location.href = '/coordinate';
     }
 
     function redirectToHome(){
